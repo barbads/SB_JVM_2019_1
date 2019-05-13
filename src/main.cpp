@@ -1,5 +1,4 @@
-#include <ConstantPool.hpp>
-#include <MagicNumber.hpp>
+#include <ClassFile.hpp>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -19,14 +18,8 @@ string getInfo(ifstream *file, int offset) {
 }
 
 int main(int argc, char const *argv[]) {
-    auto file           = ifstream("double_aritmetica.class", ios::binary);
-    auto magicExtractor = MagicNumber(&file);
-    auto constant_pool  = ConstantPool(&file);
-    auto magic          = magicExtractor.getMagicNumber();
-    auto minor          = getInfo(&file, 2);
-    auto major          = getInfo(&file, 2);
-    cout << magic;
-    cout << " " << major << "." << minor << endl;
-    constant_pool.seek();
+    auto file = ifstream("double_aritmetica.class", ios::binary);
+    auto cf   = ClassFile(&file);
+    cf.parse();
     return 0;
 }
