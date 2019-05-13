@@ -1,6 +1,6 @@
-#include <string>
 
 struct String {
     unsigned short int tag = 8;
-    std::string string_index;
+    int string_index;
+    String(int sidx) : string_index(sidx){};
 };

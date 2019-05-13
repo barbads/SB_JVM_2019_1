@@ -27,6 +27,6 @@ int main(int argc, char const *argv[]) {
     auto major          = getInfo(&file, 2);
     cout << magic;
     cout << " " << major << "." << minor << endl;
-    auto tag = getInfo(&file, 1);
+    constant_pool.seek();
     return 0;
 }
