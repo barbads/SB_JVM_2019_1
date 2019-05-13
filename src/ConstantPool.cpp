@@ -27,8 +27,10 @@ ConstantPool::ConstantPool(std::ifstream *file) {
 }
 
 void ConstantPool::seek() {
+    // go to file start
     file->seekg(0);
     file->seekg(10);
+    // advance 10bytes
     for (auto i = 0; i < pool_size - 1; i++) {
         // do `pool_size` iterations over the file
         auto tag = getTag(file);
@@ -41,9 +43,26 @@ void ConstantPool::seek() {
 }
 
 void ConstantPool::add_to_pool(int tag) {
+    // For pool we need a vector of different types with different sizes
+    // so we define as a vector of pairs (tag, void*)
+    // where void* is a pointer for any structure that we need to handle
+    // latter to convert back to its type, so first is the tag for the type
+    // itself in go you could read this as
+    //
+    // constantpool := []interface{} for _,
+    // elem := range constantpool { switch (elem.(type))
+    // {
+    // case cte_type:
+    //      .
+    //      .
+    //      .
+    //      .
+    //      .
+    //      .
+    // }
     switch (tag) {
     case 7: {
-        // Class_info
+        // Class
         auto name_index = getInfo(file, 2);
         auto class_info = std::make_shared<Class>(name_index);
         constant_pool.push_back(std::make_pair(tag, class_info));
@@ -57,6 +76,7 @@ void ConstantPool::add_to_pool(int tag) {
         constant_pool.push_back(std::make_pair(tag, fieldref_info));
     } break;
     case 12: {
+        // NameAndType
         auto name_index       = getInfo(file, 2);
         auto descriptor_index = getInfo(file, 2);
         auto name_and_type_info =
@@ -64,12 +84,14 @@ void ConstantPool::add_to_pool(int tag) {
         constant_pool.push_back(std::make_pair(tag, name_and_type_info));
     } break;
     case 1: {
+        // UTF8
         auto lenght    = getInfo(file, 2);
         auto data      = getUTF8Data(file, lenght);
         auto utf8_info = std::make_shared<UTF8>(lenght, data);
         constant_pool.push_back(std::make_pair(tag, utf8_info));
     } break;
     case 10: {
+        // Methodref_info
         auto class_name_ref = getInfo(file, 2);
         auto name_type      = getInfo(file, 2);
         auto method_ref =
@@ -77,6 +99,7 @@ void ConstantPool::add_to_pool(int tag) {
         constant_pool.push_back(std::make_pair(tag, method_ref));
     } break;
     case 11: {
+        // InterfaceMethodref_info
         auto class_index         = getInfo(file, 2);
         auto name_and_type_index = getInfo(file, 2);
         auto interfaceMethodRef  = std::make_shared<InterfaceMethodref>(
@@ -84,16 +107,19 @@ void ConstantPool::add_to_pool(int tag) {
         constant_pool.push_back(std::make_pair(tag, interfaceMethodRef));
     } break;
     case 8: {
+        // String
         auto string_index = getInfo(file, 2);
         auto stringinfo   = std::make_shared<String>(string_index);
         constant_pool.push_back(std::make_pair(tag, stringinfo));
     } break;
     case 3: {
+        // Integer
         auto value   = getInfo(file, 4);
         auto integer = std::make_shared<Integer>(value);
         constant_pool.push_back(std::make_pair(tag, integer));
     } break;
     case 4: {
+        // Float
         auto value = getInfoRaw(file, 4);
         float fvalue;
         memcpy(&fvalue, &value, sizeof(fvalue));
@@ -101,12 +127,14 @@ void ConstantPool::add_to_pool(int tag) {
         constant_pool.push_back(std::make_pair(tag, float_info));
     } break;
     case 5: {
+        // Long
         auto high_bytes = getInfoRaw(file, 4);
         auto low_bytes  = getInfoRaw(file, 4);
         auto long_info  = std::make_shared<Long>(high_bytes, low_bytes);
         constant_pool.push_back(std::make_pair(tag, long_info));
     } break;
     case 6: {
+        // Double
         auto high_bytes  = getInfoRaw(file, 4);
         auto low_bytes   = getInfoRaw(file, 4);
         auto double_info = std::make_shared<Double>(high_bytes, low_bytes);
@@ -121,6 +149,9 @@ void ConstantPool::add_to_pool(int tag) {
 }
 
 void ConstantPool::showPool() {
+    // for all elements in constant pool we decode from void* to tag_type
+    // associated using static_pointer_cast to convert back to proper type, and
+    // handling each one as necessary
     for (auto elem : constant_pool) {
         switch (elem.first) {
         case 7: {
@@ -217,6 +248,7 @@ void ConstantPool::showPool() {
 }
 
 int ConstantPool::getTag(std::ifstream *file) {
+    // getTag reads next byte in file and returns it as int
     std::stringstream ss;
     char tag[1];
     file->read(tag, 1);
@@ -225,6 +257,8 @@ int ConstantPool::getTag(std::ifstream *file) {
 }
 
 int ConstantPool::getInfo(std::ifstream *file, int offset) {
+    // getInfo reads next {offset} bytes and returns it as an int
+    // We use this to get indexes
     std::stringstream ss;
     char tag[offset];
     file->read(tag, offset);
@@ -236,6 +270,8 @@ int ConstantPool::getInfo(std::ifstream *file, int offset) {
 
 std::vector<unsigned char> ConstantPool::getInfoRaw(std::ifstream *file,
                                                     int offset) {
+    // getInfo reads next {offset} bytes and returns it as a vector<uchar>
+    // we use it to get float, doubles and longs
     std::stringstream ss;
     char tag[offset];
     unsigned char retval[offset];
@@ -246,6 +282,7 @@ std::vector<unsigned char> ConstantPool::getInfoRaw(std::ifstream *file,
 }
 
 std::string ConstantPool::getUTF8Data(std::ifstream *file, int lenght) {
+    // getUTF8Data read next {lenght} bytes and returns it as a string
     std::stringstream ss;
     char tag[lenght];
     file->read(tag, lenght);
