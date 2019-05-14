@@ -26,7 +26,6 @@ struct Double {
         auto low_byte  = reinterpret_cast<unsigned char *>(lbytes.data());
         strcpy((char *)full_bytes, (char *)high_byte);
         strcat((char *)full_bytes, (char *)low_byte);
-        std::cout << full_bytes << std::endl;
     };
     double getValue() {
         std::string reverse_string((char *)full_bytes);
@@ -37,8 +36,6 @@ struct Double {
         double li;
 
         memcpy(&li, full_bytes, sizeof(double));
-
-        std::cout << (double)li << std::endl;
 
         return li;
     };
