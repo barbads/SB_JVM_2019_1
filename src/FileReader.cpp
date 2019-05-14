@@ -23,6 +23,18 @@ int FileReader::getInfo(std::ifstream *file, int offset) {
     return stoi(ss.str());
 }
 
+std::string FileReader::getInfoHex(std::ifstream *file, int offset) {
+    // getInfo reads next {offset} bytes and returns it as an int
+    // We use this to get indexes
+    std::stringstream ss;
+    char tag[offset];
+    file->read(tag, offset);
+    for (auto i = 0; i < offset; ++i) {
+        ss << std::hex << static_cast<int>(static_cast<unsigned char>(tag[i]));
+    }
+    return ss.str();
+}
+
 std::vector<unsigned char> FileReader::getInfoRaw(std::ifstream *file,
                                                   int offset) {
     // getInfo reads next {offset} bytes and returns it as a vector<uchar>

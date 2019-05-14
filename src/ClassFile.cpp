@@ -7,7 +7,6 @@ ClassFile::ClassFile(std::ifstream *file) {
 
 std::string ClassFile::getMagicNumber() {
     file->seekg(0);
-    file->seekg(0);
     std::stringstream ss;
     char magic[4];
     file->read(magic, 4);
@@ -15,7 +14,6 @@ std::string ClassFile::getMagicNumber() {
         ss << std::hex
            << static_cast<int>(static_cast<unsigned char>(magic[i]));
     }
-
     return ss.str();
 }
 void ClassFile::parse() {
@@ -26,6 +24,10 @@ void ClassFile::parse() {
     }
     auto minor = getInfo(file, 2);
     auto major = getInfo(file, 2);
+    version    = major + "." + minor;
     cp->seek();
+    access_flags = getInfoHex(file, 2);
+    this_class   = getInfo(file, 2);
+    super_class  = getInfo(file, 2);
     // add additional steps here
 }

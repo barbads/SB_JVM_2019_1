@@ -24,6 +24,9 @@ ConstantPool::ConstantPool(std::ifstream *file) {
     }
 
     pool_size = stoi(ss.str());
+    // pool indexes start at 1, so we need to put a offset in our vector
+    this->constant_pool.push_back(
+        std::make_pair(-1, std::make_shared<float>(0)));
 }
 
 void ConstantPool::seek() {
@@ -39,6 +42,7 @@ void ConstantPool::seek() {
             ++i;
         add_to_pool(tag);
     }
+    resolve_pool();
     showPool();
 }
 
@@ -49,9 +53,11 @@ void ConstantPool::add_to_pool(int tag) {
     // latter to convert back to its type, so first is the tag for the type
     // itself in go you could read this as
     //
-    // constantpool := []interface{} for _,
-    // elem := range constantpool { switch (elem.(type))
-    // {
+    // constantpool := []interface{}
+    //
+    // for _, elem := range constantpool {
+    //
+    // switch (elem.(type)) {
     // case cte_type:
     //      .
     //      .
@@ -125,6 +131,7 @@ void ConstantPool::add_to_pool(int tag) {
         memcpy(&fvalue, &value, sizeof(fvalue));
         auto float_info = std::make_shared<Float>(fvalue);
         constant_pool.push_back(std::make_pair(tag, float_info));
+        constant_pool.push_back(std::make_pair(-1, std::make_shared<float>(0)));
     } break;
     case 5: {
         // Long
@@ -132,6 +139,7 @@ void ConstantPool::add_to_pool(int tag) {
         auto low_bytes  = getInfoRaw(file, 4);
         auto long_info  = std::make_shared<Long>(high_bytes, low_bytes);
         constant_pool.push_back(std::make_pair(tag, long_info));
+        constant_pool.push_back(std::make_pair(-1, std::make_shared<float>(0)));
     } break;
     case 6: {
         // Double
@@ -139,6 +147,7 @@ void ConstantPool::add_to_pool(int tag) {
         auto low_bytes   = getInfoRaw(file, 4);
         auto double_info = std::make_shared<Double>(high_bytes, low_bytes);
         constant_pool.push_back(std::make_pair(tag, double_info));
+        constant_pool.push_back(std::make_pair(-1, std::make_shared<float>(0)));
     } break;
     default:
         char msg_error[30];
@@ -157,26 +166,30 @@ void ConstantPool::showPool() {
         case 7: {
             auto class_info = std::static_pointer_cast<Class>(elem.second);
             std::cout << "Class_info:" << std::endl
-                      << "Name index: " << class_info->name_index << std::endl
+                      << "Name index: " << class_info->name_index << " "
+                      << class_info->name << std::endl
                       << std::endl;
         } break;
         case 9: {
             auto fieldref_info =
                 std::static_pointer_cast<Fieldref>(elem.second);
             std::cout << "Fieldref_info:" << std::endl
-                      << "Class index: " << fieldref_info->class_index
-                      << std::endl
+                      << "Class index: " << fieldref_info->class_index << " "
+                      << fieldref_info->class_name << std::endl
                       << "Name and Type index: "
-                      << fieldref_info->name_type_index << std::endl
+                      << fieldref_info->name_type_index << " "
+                      << fieldref_info->name_and_type << std::endl
                       << std::endl;
         } break;
         case 12: {
             auto name_type_info =
                 std::static_pointer_cast<NameAndType>(elem.second);
             std::cout << "NameAndType_info:" << std::endl
-                      << "Name index: " << name_type_info->name_index
+                      << "Name index: " << name_type_info->name_index << " "
+                      << name_type_info->name << std::endl
                       << "Descriptor index: "
-                      << name_type_info->descriptor_index << std::endl
+                      << name_type_info->descriptor_index << " "
+                      << name_type_info->descriptor << std::endl
                       << std::endl;
         } break;
         case 1: {
@@ -189,27 +202,29 @@ void ConstantPool::showPool() {
         case 10: {
             auto method_ref = std::static_pointer_cast<Methodref>(elem.second);
             std::cout << "Methodref_info:" << std::endl
-                      << "Class Name: " << method_ref->class_index << std::endl
-                      << "Name and Type: " << method_ref->name_type_index
-                      << std::endl
+                      << "Class Name: " << method_ref->class_index << " "
+                      << method_ref->class_name << std::endl
+                      << "Name and Type: " << method_ref->name_type_index << " "
+                      << method_ref->name_and_type << std::endl
                       << std::endl;
         } break;
         case 11: {
             auto interface_info =
                 std::static_pointer_cast<InterfaceMethodref>(elem.second);
             std::cout << "InterfaceMethodref_info:" << std::endl
-                      << "Classe index: " << interface_info->class_index
-                      << std::endl
+                      << "Classe index: " << interface_info->class_index << " "
+                      << interface_info->class_name << std::endl
                       << "Name and Type index: "
-                      << interface_info->name_type_index << std::endl
+                      << interface_info->name_type_index << " "
+                      << interface_info->name_and_type << std::endl
                       << std::endl;
 
         } break;
         case 8: {
             auto string_info = std::static_pointer_cast<String>(elem.second);
             std::cout << "String_info:" << std::endl
-                      << "String index:" << string_info->string_index
-                      << std::endl
+                      << "String index:" << string_info->string_index << " "
+                      << string_info->string << std::endl
                       << std::endl;
         } break;
         case 3: {
@@ -236,8 +251,12 @@ void ConstantPool::showPool() {
             std::cout << "Double_info" << std::endl
                       << "high bytes: " << double_info->high_bytes << std::endl
                       << "low bytes: " << double_info->low_bytes << std::endl
+                      << "Value: " << double_info->getValue() << std::endl
                       << std::endl;
         } break;
+        case -1:
+            continue;
+            break;
         default:
             char msg_error[30];
             sprintf(msg_error, "Tag %d is not in scope", elem.first);
@@ -245,4 +264,69 @@ void ConstantPool::showPool() {
             break;
         }
     }
+}
+
+void ConstantPool::resolve_pool() {
+    for (auto i = 0; i < constant_pool.size() - 2; i++) {
+        if (constant_pool[i].first != 3 && constant_pool[i].first != 4 &&
+            constant_pool[i].first != 5 && constant_pool[i].first != 6 &&
+            constant_pool[i].first != -1) {
+            // those should not be resolved
+            resolve(i);
+        }
+    }
+}
+
+std::string ConstantPool::resolve(int idx) {
+    auto tag      = constant_pool[idx].first;
+    auto constant = constant_pool[idx].second;
+    if (tag == -1) {
+        throw std::invalid_argument("Wrong index for constant pool");
+    }
+    if (tag != 1) {
+        switch (tag) {
+        case 7: {
+            auto class_info  = std::static_pointer_cast<Class>(constant);
+            class_info->name = resolve(class_info->name_index);
+        } break;
+        case 9: {
+            auto fieldref_info = std::static_pointer_cast<Fieldref>(constant);
+            fieldref_info->class_name = resolve(fieldref_info->class_index);
+            fieldref_info->name_and_type =
+                resolve(fieldref_info->name_type_index);
+        } break;
+        case 12: {
+            auto name_type_info =
+                std::static_pointer_cast<NameAndType>(constant);
+            name_type_info->name = resolve(name_type_info->name_index);
+            name_type_info->descriptor =
+                resolve(name_type_info->descriptor_index);
+            return "<" + name_type_info->name + name_type_info->descriptor +
+                   ">";
+        } break;
+        case 10: {
+            auto method_ref = std::static_pointer_cast<Methodref>(constant);
+            method_ref->name_and_type = resolve(method_ref->name_type_index);
+            method_ref->class_name    = resolve(method_ref->class_index);
+        } break;
+        case 11: {
+            auto interface_info =
+                std::static_pointer_cast<InterfaceMethodref>(constant);
+            interface_info->class_name = resolve(interface_info->class_index);
+            interface_info->name_and_type =
+                resolve(interface_info->name_type_index);
+        } break;
+        case 8: {
+            auto string_info    = std::static_pointer_cast<String>(constant);
+            string_info->string = resolve(string_info->string_index);
+        } break;
+        default:
+            char msg_error[30];
+            sprintf(msg_error, "Tag %d is not in scope", tag);
+            throw std::domain_error(msg_error);
+            break;
+        }
+    }
+    auto utf8_info = std::static_pointer_cast<UTF8>(constant);
+    return utf8_info->bytes;
 }

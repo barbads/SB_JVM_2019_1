@@ -11,8 +11,8 @@ class ClassFile : FileReader {
     std::string version;
     ConstantPool *cp;
     std::string access_flags;
-    std::string this_class;
-    std::string super_class;
+    int this_class;
+    int super_class;
     std::string getMagicNumber();
 
   public:

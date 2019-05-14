@@ -17,6 +17,8 @@ class ConstantPool : FileReader {
     void add_to_pool(int tag);
 
   public:
+    std::string resolve(int idx);
+    void resolve_pool();
     ConstantPool(std::ifstream *file);
     void seek();
     void showPool();
