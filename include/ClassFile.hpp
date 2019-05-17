@@ -3,6 +3,7 @@
 #include <ConstantPool.hpp>
 #include <FieldInfo.hpp>
 #include <fstream>
+#include <iostream>
 #include <string>
 
 class ClassFile : FileReader {

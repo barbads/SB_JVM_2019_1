@@ -332,6 +332,13 @@ std::string ConstantPool::resolve(int idx) {
 }
 
 std::string ConstantPool::getNameByIndex(int index) {
+    if (index > constant_pool.size() - 1) {
+        char error[50];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%d",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
     if (constant_pool[index].first != 1) {
         throw std::invalid_argument("Requested descriptor index is not a valid "
                                     "UTF8 entry on constant_pool");
