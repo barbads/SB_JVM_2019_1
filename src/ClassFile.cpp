@@ -33,6 +33,7 @@ void ClassFile::parse() {
     if (Interface_count > 0) {
         getInfo(file, 2 * Interface_count);
     }
+
     fi = new FieldInfo(file);
     fi->seek();
     auto field_info = fi->getFieldInfo();
@@ -41,5 +42,16 @@ void ClassFile::parse() {
         field.descriptor = cp->getNameByIndex(field.descriptor_index);
     }
     fi->showFI();
+
+    std::cout << "Get Method" << std::endl;
+    mi = new MethodInfo(file);
+    mi->seek();
+    auto method_info = mi->getMethodInfo();
+
+    for (auto &method : *method_info) {
+        method.name       = cp->getNameByIndex(method.name_index);
+        method.descriptor = cp->getNameByIndex(method.descriptor_index);
+    }
+    mi->showMI();
     // add additional steps here
 }

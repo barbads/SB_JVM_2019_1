@@ -2,6 +2,7 @@
 #define _ClassFile_H_
 #include <ConstantPool.hpp>
 #include <FieldInfo.hpp>
+#include <MethodInfo.hpp>
 #include <fstream>
 #include <iostream>
 #include <string>
@@ -16,6 +17,7 @@ class ClassFile : FileReader {
     int this_class;
     int super_class;
     FieldInfo *fi;
+    MethodInfo *mi;
     std::string getMagicNumber();
 
   public:
