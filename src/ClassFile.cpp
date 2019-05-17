@@ -26,8 +26,20 @@ void ClassFile::parse() {
     auto major = getInfo(file, 2);
     version    = major + "." + minor;
     cp->seek();
-    access_flags = getInfoHex(file, 2);
-    this_class   = getInfo(file, 2);
-    super_class  = getInfo(file, 2);
+    access_flags         = getInfoHex(file, 2);
+    this_class           = getInfo(file, 2);
+    super_class          = getInfo(file, 2);
+    auto Interface_count = getInfo(file, 2);
+    if (Interface_count > 0) {
+        getInfo(file, 2 * Interface_count);
+    }
+    fi = new FieldInfo(file);
+    fi->seek();
+    auto field_info = fi->getFieldInfo();
+    for (auto &field : *field_info) {
+        field.name       = cp->getNameByIndex(field.name_index);
+        field.descriptor = cp->getNameByIndex(field.descriptor_index);
+    }
+    fi->showFI();
     // add additional steps here
 }

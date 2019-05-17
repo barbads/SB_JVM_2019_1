@@ -15,13 +15,14 @@ class ConstantPool : FileReader {
     std::ifstream *file;
     std::vector<std::pair<int, std::shared_ptr<void>>> constant_pool;
     void add_to_pool(int tag);
+    std::string resolve(int idx);
 
   public:
-    std::string resolve(int idx);
-    void resolve_pool();
     ConstantPool(std::ifstream *file);
+    void resolve_pool();
     void seek();
     void showPool();
+    std::string getNameByIndex(int index);
 };
 
 #endif

@@ -330,3 +330,15 @@ std::string ConstantPool::resolve(int idx) {
     auto utf8_info = std::static_pointer_cast<UTF8>(constant);
     return utf8_info->bytes;
 }
+
+std::string ConstantPool::getNameByIndex(int index) {
+    if (constant_pool[index].first != 1) {
+        throw std::invalid_argument("Requested descriptor index is not a valid "
+                                    "UTF8 entry on constant_pool");
+    }
+
+    auto name =
+        std::static_pointer_cast<UTF8>(constant_pool[index].second)->bytes;
+
+    return name;
+}
