@@ -39,7 +39,6 @@ std::vector<unsigned char> FileReader::getInfoRaw(std::ifstream *file,
                                                   int offset) {
     // getInfo reads next {offset} bytes and returns it as a vector<uchar>
     // we use it to get float, doubles and longs
-    std::stringstream ss;
     char tag[offset];
     unsigned char retval[offset];
     file->read(tag, offset);

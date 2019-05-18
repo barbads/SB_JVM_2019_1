@@ -17,7 +17,7 @@ struct AttributeCode {
     unsigned short int max_stack;
     unsigned short int max_locals;
     unsigned int code_length;
-    unsigned char *code;
+    char *code;
     unsigned short int exception_table_length;
     exception *exception_table;
     unsigned short attributes_count;

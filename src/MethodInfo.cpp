@@ -25,24 +25,25 @@ void MethodInfo::seek() {
 }
 
 AttributeCode MethodInfo::readAttr() {
-    auto attr_name_index = getInfo(file, 2);
-    auto attr_lenght     = getInfo(file, 4);
-    auto max_stack       = getInfo(file, 2);
-    auto max_locals      = getInfo(file, 2);
-    auto code_lenght     = getInfo(file, 4);
-    auto code =
-        reinterpret_cast<unsigned char *>(getInfoRaw(file, code_lenght).data());
-    std::string s(reinterpret_cast<char *>(code));
-    auto et_length = getInfo(file, 2);
-    exception *et  = new exception[et_length];
+    auto attr_name_index = static_cast<unsigned short int>(getInfo(file, 2));
+    auto attr_lenght     = static_cast<unsigned int>(getInfo(file, 4));
+    auto max_stack       = static_cast<unsigned short int>(getInfo(file, 2));
+    auto max_locals      = static_cast<unsigned short int>(getInfo(file, 2));
+    auto code_lenght     = static_cast<unsigned int>(getInfo(file, 4));
+    auto code            = getUTF8Data(file, code_lenght);
+    auto et_length       = static_cast<unsigned short int>(getInfo(file, 2));
+    exception *et        = new exception[et_length];
+
     for (int i = 0; i < et_length; i++) {
-        et[i].start_pc   = getInfo(file, 2);
-        et[i].end_pc     = getInfo(file, 2);
-        et[i].handler_pc = getInfo(file, 2);
-        et[i].catch_type = getInfo(file, 2);
+        et[i].start_pc   = static_cast<unsigned int>(getInfo(file, 2));
+        et[i].end_pc     = static_cast<unsigned int>(getInfo(file, 2));
+        et[i].handler_pc = static_cast<unsigned int>(getInfo(file, 2));
+        et[i].catch_type = static_cast<unsigned int>(getInfo(file, 2));
     }
-    auto attributes_count = getInfo(file, 2);
+
+    auto attributes_count = static_cast<unsigned short int>(getInfo(file, 2));
     AttributeInfo *ai     = new AttributeInfo[attributes_count];
+
     for (int i = 0; i < attributes_count; i++) {
         ai[i].attribute_name_index = getInfo(file, 2);
         ai[i].attribute_lenght     = getInfo(file, 4);
@@ -51,7 +52,7 @@ AttributeCode MethodInfo::readAttr() {
     }
     AttributeCode ac{
         attr_name_index,  attr_lenght, max_stack,     max_locals,
-        code_lenght,      code,        et_length,     et,
+        code_lenght,      &code[0],    et_length,     et,
         attributes_count, ai,          std::string(),
     };
     return ac;
@@ -74,7 +75,11 @@ void MethodInfo::showMI() {
             auto code_lenght = elem.attributes[i].code_length;
             if (code_lenght) {
                 std::cout << "      code: " << std::endl;
-                std::cout << "        " << elem.attributes[i].code << std::endl;
+                std::cout << "        ";
+                for (int j = 0; j < elem.attributes[i].code_length; j++) {
+                    std::cout << (unsigned char)elem.attributes[i].code[j];
+                }
+                std::cout << std::endl;
             }
             auto exception_table_length =
                 elem.attributes[i].exception_table_length;
@@ -102,8 +107,6 @@ void MethodInfo::showMI() {
             std::cout << "      misc: " << std::endl
                       << "        Max stack depth: "
                       << elem.attributes[i].max_stack << std::endl;
-            std::cout << "        Max local variables: "
-                      << elem.attributes[i].max_locals << std::endl;
             std::cout << "        Max local variables: "
                       << elem.attributes[i].max_locals << std::endl;
             std::cout << "        Code length: "
