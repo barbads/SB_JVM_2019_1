@@ -14,8 +14,16 @@ void FieldInfo::seek() {
         AttributeInfo *ai     = new AttributeInfo[attributes_count];
 
         for (int j = 0; j < attributes_count; j++) {
-            ai[j] = *reinterpret_cast<AttributeInfo *>(
-                getInfoRaw(file, sizeof(AttributeInfo)).data());
+            auto attribute_name_index =
+                static_cast<unsigned short int>(getInfo(file, 2));
+            auto attribute_lenght = getInfo(file, 4);
+            auto attribute_info   = reinterpret_cast<unsigned char *>(
+                getInfoRaw(file, attribute_lenght).data());
+            ai[j] = AttributeInfo{
+                attribute_name_index,
+                attribute_lenght,
+                attribute_info,
+            };
         }
         auto file_info = FieldInfoCte(access_flags, name_index,
                                       descriptor_index, attributes_count, ai);

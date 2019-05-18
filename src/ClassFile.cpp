@@ -40,6 +40,10 @@ void ClassFile::parse() {
     for (auto &field : *field_info) {
         field.name       = cp->getNameByIndex(field.name_index);
         field.descriptor = cp->getNameByIndex(field.descriptor_index);
+        for (int i = 0; i < field.attributes_count; i++) {
+            field.attributes[i].name =
+                cp->getNameByIndex(field.attributes[i].attribute_name_index);
+        }
     }
     fi->showFI();
 
@@ -51,6 +55,10 @@ void ClassFile::parse() {
     for (auto &method : *method_info) {
         method.name       = cp->getNameByIndex(method.name_index);
         method.descriptor = cp->getNameByIndex(method.descriptor_index);
+        for (int i = 0; i < method.attributes_count; i++) {
+            method.attributes[i].name =
+                cp->getNameByIndex(method.attributes[i].attribute_name_index);
+        }
     }
     mi->showMI();
     // add additional steps here
