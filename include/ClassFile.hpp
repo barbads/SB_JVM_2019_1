@@ -2,6 +2,7 @@
 #define _ClassFile_H_
 #include <ConstantPool.hpp>
 #include <FieldInfo.hpp>
+#include <Interface.hpp>
 #include <MethodInfo.hpp>
 #include <fstream>
 #include <iostream>
@@ -16,6 +17,7 @@ class ClassFile : FileReader {
     std::string access_flags;
     int this_class;
     int super_class;
+    Interface *itf;
     FieldInfo *fi;
     MethodInfo *mi;
     std::string getMagicNumber();

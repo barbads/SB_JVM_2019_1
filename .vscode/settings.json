@@ -44,8 +44,10 @@
     "__nullptr": "cpp",
     "typeindex": "cpp",
     "memory": "cpp",
-    "cstring": "cpp"
+    "cstring": "cpp",
+    "functional": "cpp"
   },
   "editor.formatOnSave": true,
-  "C_Cpp.formatting": "Default"
+  "C_Cpp.formatting": "Default",
+  "C_Cpp.intelliSenseEngineFallback": "Enabled"
 }

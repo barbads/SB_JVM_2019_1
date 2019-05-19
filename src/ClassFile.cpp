@@ -26,13 +26,19 @@ void ClassFile::parse() {
     auto major = getInfo(file, 2);
     version    = major + "." + minor;
     cp->seek();
-    access_flags         = getInfoHex(file, 2);
-    this_class           = getInfo(file, 2);
-    super_class          = getInfo(file, 2);
-    auto Interface_count = getInfo(file, 2);
-    if (Interface_count > 0) {
-        getInfo(file, 2 * Interface_count);
+    access_flags = getInfoHex(file, 2);
+    this_class   = getInfo(file, 2);
+    super_class  = getInfo(file, 2);
+
+    itf = new Interface(file);
+    itf->seek();
+    auto itf_ref = itf->getITF();
+    for (auto interface : itf_ref) {
+        auto name = cp->getNameByIndex(interface);
+        itf->setITF(name);
     }
+
+    itf->show();
 
     fi = new FieldInfo(file);
     fi->seek();
@@ -47,7 +53,6 @@ void ClassFile::parse() {
     }
     fi->showFI();
 
-    std::cout << "Get Method" << std::endl;
     mi = new MethodInfo(file);
     mi->seek();
     auto method_info = mi->getMethodInfo();

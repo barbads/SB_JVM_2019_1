@@ -335,17 +335,25 @@ std::string ConstantPool::getNameByIndex(int index) {
     if (index > constant_pool.size() - 1) {
         char error[50];
         sprintf(error,
-                "Requested index %d is out of range, allowed range: 1-%d",
+                "Requested index %d is out of range, allowed range: 1-%ld",
                 index, constant_pool.size() - 1);
         throw std::invalid_argument(error);
     }
-    if (constant_pool[index].first != 1) {
+    if (constant_pool[index].first != 1 && constant_pool[index].first != 7) {
         throw std::invalid_argument("Requested descriptor index is not a valid "
                                     "UTF8 entry on constant_pool");
     }
 
-    auto name =
-        std::static_pointer_cast<UTF8>(constant_pool[index].second)->bytes;
-
-    return name;
+    switch (constant_pool[index].first) {
+    case 1: {
+        auto name =
+            std::static_pointer_cast<UTF8>(constant_pool[index].second)->bytes;
+        return name;
+    } break;
+    case 7: {
+        auto name =
+            std::static_pointer_cast<Class>(constant_pool[index].second)->name;
+        return name;
+    } break;
+    }
 }

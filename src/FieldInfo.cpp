@@ -25,19 +25,20 @@ void FieldInfo::seek() {
                 attribute_info,
             };
         }
-        auto file_info = FieldInfoCte(access_flags, name_index,
-                                      descriptor_index, attributes_count, ai);
-        fi.push_back(file_info);
+        auto field_info = FieldInfoCte(access_flags, name_index,
+                                       descriptor_index, attributes_count, ai);
+        fi.push_back(field_info);
     }
 }
 
 std::vector<FieldInfoCte> *FieldInfo::getFieldInfo() { return &fi; }
 
 void FieldInfo::showFI() {
-    std::cout << "FieldInfo" << std::endl;
+    std::cout << "FieldInfo:" << std::endl;
     for (auto elem : fi) {
         std::cout << "Field: " << elem.name << "\nDesc:" << elem.descriptor
                   << std::endl
                   << std::endl;
     }
+    std::cout << std::endl;
 }
