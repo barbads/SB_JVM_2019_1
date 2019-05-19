@@ -332,7 +332,7 @@ std::string ConstantPool::resolve(int idx) {
 }
 
 std::string ConstantPool::getNameByIndex(int index) {
-    if (index > constant_pool.size() - 1) {
+    if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];
         sprintf(error,
                 "Requested index %d is out of range, allowed range: 1-%ld",
@@ -340,8 +340,9 @@ std::string ConstantPool::getNameByIndex(int index) {
         throw std::invalid_argument(error);
     }
     if (constant_pool[index].first != 1 && constant_pool[index].first != 7) {
-        throw std::invalid_argument("Requested descriptor index is not a valid "
-                                    "UTF8 entry on constant_pool");
+        throw std::invalid_argument(
+            "Requested descriptor index is not a valid "
+            "UTF8 or Class_info entry on constant_pool");
     }
 
     switch (constant_pool[index].first) {
@@ -356,4 +357,17 @@ std::string ConstantPool::getNameByIndex(int index) {
         return name;
     } break;
     }
+    return "";
+}
+
+int ConstantPool::getLineTableIndex() {
+    for (int i = 1; i < constant_pool.size() - 1; i++) {
+        if (constant_pool[i].first == 1) {
+            auto utf8 = std::static_pointer_cast<UTF8>(constant_pool[i].second);
+            if (utf8->bytes == "LineNumberTable") {
+                return i;
+            }
+        }
+    }
+    return -1;
 }

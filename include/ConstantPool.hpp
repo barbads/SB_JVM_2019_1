@@ -23,6 +23,7 @@ class ConstantPool : FileReader {
     void seek();
     void showPool();
     std::string getNameByIndex(int index);
+    int getLineTableIndex();
 };
 
 #endif

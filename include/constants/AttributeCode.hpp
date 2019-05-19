@@ -2,6 +2,7 @@
 #define _AttributeCode_H_
 
 #include <constants/AttributeInfo.hpp>
+#include <constants/LineTableNumber.hpp>
 #include <string>
 
 struct exception {
@@ -21,7 +22,9 @@ struct AttributeCode {
     unsigned short int exception_table_length;
     exception *exception_table;
     unsigned short attributes_count;
-    AttributeInfo *attributes;
+    std::vector<AttributeInfo> attributes;
+    bool hasLineTable;
+    LineTableNumber ltn;
     std::string name;
 };
 

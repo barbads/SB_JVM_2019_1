@@ -15,9 +15,10 @@ class MethodInfo : FileReader {
     std::vector<MethodInfoCte> mi;
     std::ifstream *file;
     AttributeCode readAttr();
+    int line_table_index;
 
   public:
-    MethodInfo(std::ifstream *file);
+    MethodInfo(std::ifstream *file, int linetableindex);
     void seek();
     std::vector<MethodInfoCte> *getMethodInfo();
     void showMI();

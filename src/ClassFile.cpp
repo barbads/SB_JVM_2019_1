@@ -13,6 +13,7 @@ std::string ClassFile::getMagicNumber() {
     for (auto i = 0; i < 4; i++) {
         ss << std::hex
            << static_cast<int>(static_cast<unsigned char>(magic[i]));
+        // add additional steps here
     }
     return ss.str();
 }
@@ -52,8 +53,9 @@ void ClassFile::parse() {
         }
     }
     fi->showFI();
+    auto linetable = cp->getLineTableIndex();
 
-    mi = new MethodInfo(file);
+    mi = new MethodInfo(file, linetable);
     mi->seek();
     auto method_info = mi->getMethodInfo();
 
@@ -66,5 +68,13 @@ void ClassFile::parse() {
         }
     }
     mi->showMI();
-    // add additional steps here
+
+    attr = new Attributes(file);
+    attr->seek();
+    auto attr_list = attr->getClassAttributes();
+    for (auto &attribute : *attr_list) {
+        attribute.name = cp->getNameByIndex(attribute.attribute_name_index);
+        attribute.sourcefile = cp->getNameByIndex(attribute.sourcefile_index);
+    }
+    attr->show();
 }

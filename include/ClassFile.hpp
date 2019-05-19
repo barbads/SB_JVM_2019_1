@@ -1,5 +1,6 @@
 #ifndef _ClassFile_H_
 #define _ClassFile_H_
+#include <Attributes.hpp>
 #include <ConstantPool.hpp>
 #include <FieldInfo.hpp>
 #include <Interface.hpp>
@@ -20,6 +21,7 @@ class ClassFile : FileReader {
     Interface *itf;
     FieldInfo *fi;
     MethodInfo *mi;
+    Attributes *attr;
     std::string getMagicNumber();
 
   public:

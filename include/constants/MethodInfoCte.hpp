@@ -8,8 +8,9 @@ struct MethodInfoCte {
     std::string descriptor;
     unsigned short int descriptor_index;
     unsigned short int attributes_count;
-    AttributeCode *attributes;
-    MethodInfoCte(int af, int ni, int di, int ac, AttributeCode *attr) {
+    std::vector<AttributeCode> attributes;
+    MethodInfoCte(int af, int ni, int di, int ac,
+                  std::vector<AttributeCode> attr) {
         access_flags     = af;
         name_index       = ni;
         descriptor_index = di;
