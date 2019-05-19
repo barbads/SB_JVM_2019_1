@@ -139,8 +139,11 @@ void MethodInfo::showMI() {
                     std::cout << "          start_pc    |    line_number"
                               << std::endl;
                     for (auto pair : attr.ltn.line_table) {
-                        std::cout << "          " << pair.first << "   |   "
-                                  << pair.second << std::endl;
+                        std::cout << "          " << pair.first;
+                        for (int i = std::to_string(pair.first).size(); i < 12;
+                             i++)
+                            std::cout << " ";
+                        std::cout << "|    " << pair.second << std::endl;
                     }
                 }
             }
