@@ -22,10 +22,13 @@ void ClassFile::parse() {
         throw std::range_error(
             "Wrong file position, could not read magic number properly");
     }
+
     auto minor = getInfo(file, 2);
     auto major = getInfo(file, 2);
     version    = major + "." + minor;
+
     cp->seek();
+
     access_flags = getInfoHex(file, 2);
     this_class   = getInfo(file, 2);
     super_class  = getInfo(file, 2);
@@ -37,7 +40,6 @@ void ClassFile::parse() {
         auto name = cp->getNameByIndex(interface);
         itf->setITF(name);
     }
-
     itf->show();
 
     fi = new FieldInfo(file);
@@ -52,12 +54,11 @@ void ClassFile::parse() {
         }
     }
     fi->showFI();
-    auto linetable = cp->getLineTableIndex();
 
-    mi = new MethodInfo(file, linetable);
+    auto linetable = cp->getLineTableIndex();
+    mi             = new MethodInfo(file, linetable);
     mi->seek();
     auto method_info = mi->getMethodInfo();
-
     for (auto &method : *method_info) {
         method.name       = cp->getNameByIndex(method.name_index);
         method.descriptor = cp->getNameByIndex(method.descriptor_index);
