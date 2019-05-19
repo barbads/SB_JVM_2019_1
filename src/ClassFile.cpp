@@ -13,7 +13,6 @@ std::string ClassFile::getMagicNumber() {
     for (auto i = 0; i < 4; i++) {
         ss << std::hex
            << static_cast<int>(static_cast<unsigned char>(magic[i]));
-        // add additional steps here
     }
     return ss.str();
 }
