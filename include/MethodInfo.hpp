@@ -5,6 +5,7 @@
 #include <constants/MethodInfoCte.hpp>
 #include <cstring>
 #include <fstream>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <vector>
@@ -14,7 +15,7 @@ class MethodInfo : FileReader {
     int method_count;
     std::vector<MethodInfoCte> mi;
     std::ifstream *file;
-    AttributeCode readAttr();
+    AttributeInfo readAttrCode();
     int line_table_index;
 
   public:

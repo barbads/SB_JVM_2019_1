@@ -13,20 +13,25 @@ void MethodInfo::seek() {
         auto name_index       = getInfo(file, 2);
         auto descriptor_index = getInfo(file, 2);
         auto attributes_count = getInfo(file, 2);
-        std::vector<AttributeCode> ac;
+        AttributeInfo *ai     = new AttributeInfo[attributes_count];
 
         for (int j = 0; j < attributes_count; j++) {
-            auto attribute_info = readAttr();
-            ac.push_back(attribute_info);
+            auto attribute_name_index =
+                static_cast<unsigned short int>(getInfo(file, 2));
+            auto attribute_lenght = getInfo(file, 4);
+            auto attribute_info   = reinterpret_cast<unsigned char *>(
+                getInfoRaw(file, attribute_lenght).data());
+            ai[j] = AttributeInfo{attribute_name_index, attribute_lenght,
+                                  attribute_info};
         }
         auto file_info = MethodInfoCte(access_flags, name_index,
-                                       descriptor_index, attributes_count, ac);
+                                       descriptor_index, attributes_count, ai);
         mi.push_back(file_info);
     }
 }
 
-AttributeCode MethodInfo::readAttr() {
-    auto attr_name_index = static_cast<unsigned short int>(getInfo(file, 2));
+AttributeInfo MethodInfo::readAttrCode() {
+    /*auto attr_name_index = static_cast<unsigned short int>(getInfo(file, 2));
     auto attr_lenght     = static_cast<unsigned int>(getInfo(file, 4));
     auto max_stack       = static_cast<unsigned short int>(getInfo(file, 2));
     auto max_locals      = static_cast<unsigned short int>(getInfo(file, 2));
@@ -83,17 +88,27 @@ AttributeCode MethodInfo::readAttr() {
         &code[0],        et_length,   et,        attributes_count, ai,
         hasLT,           ltn,         "",
     };
-    return ac;
+    return ac;*/
 }
 
 std::vector<MethodInfoCte> *MethodInfo::getMethodInfo() { return &mi; }
 
 void MethodInfo::showMI() {
-    std::cout << "MethodInfo" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "               MethodInfo" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     for (auto elem : mi) {
-        std::cout << "method: " << elem.name << "\nDesc:" << elem.descriptor
-                  << std::endl;
-        for (auto attr : elem.attributes) {
+        std::cout << "Name: " << elem.name << std::endl
+                  << "Descriptor: " << elem.descriptor << std::endl
+                  << "Access Flags: 0x" << std::setfill('0') << std::setw(4)
+                  << std::hex << elem.access_flags << std::endl;
+        for (int j = 0; j < elem.attributes_count; j++) {
+            std::cout << "Nome do Attributo " << j + 1 << ": "
+                      << elem.attributes[j].name << std::endl;
+        }
+        std::cout << std::endl;
+        /*for (auto attr : elem.attributes) {
+
             std::cout << "  Attribute: " << attr.name << std::endl
                       << "    info: \n"
                       << "      index: " << attr.attribute_name_index
@@ -155,6 +170,7 @@ void MethodInfo::showMI() {
             std::cout << "        Code length: " << attr.code_length
                       << std::endl
                       << std::endl;
-        }
+        }*/
     }
+    std::cout << std::endl;
 }

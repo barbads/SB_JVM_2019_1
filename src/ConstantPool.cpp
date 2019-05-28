@@ -161,13 +161,17 @@ void ConstantPool::showPool() {
     // for all elements in constant pool we decode from void* to tag_type
     // associated using static_pointer_cast to convert back to proper type, and
     // handling each one as necessary
+
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "               Constant Pool" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     int constant_pool_index = -1;
     for (auto elem : constant_pool) {
         constant_pool_index++;
         switch (elem.first) {
         case 7: {
             auto class_info = std::static_pointer_cast<Class>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Class_info:" << std::endl
                       << "Class Name: [" << class_info->name_index << "] "
                       << class_info->name << std::endl
@@ -176,30 +180,28 @@ void ConstantPool::showPool() {
         case 9: {
             auto fieldref_info =
                 std::static_pointer_cast<Fieldref>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Fieldref_info:" << std::endl
                       << "Class name: [" << fieldref_info->class_index << "] "
                       << fieldref_info->class_name << std::endl
-                      << "Name and Type: ["
-                      << fieldref_info->name_type_index << "] "
-                      << fieldref_info->name_and_type << std::endl
+                      << "Name and Type: [" << fieldref_info->name_type_index
+                      << "] " << fieldref_info->name_and_type << std::endl
                       << std::endl;
         } break;
         case 12: {
             auto name_type_info =
                 std::static_pointer_cast<NameAndType>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "NameAndType_info:" << std::endl
                       << "Name: [" << name_type_info->name_index << "] "
                       << name_type_info->name << std::endl
-                      << "Descriptor: ["
-                      << name_type_info->descriptor_index << "] "
-                      << name_type_info->descriptor << std::endl
+                      << "Descriptor: [" << name_type_info->descriptor_index
+                      << "] " << name_type_info->descriptor << std::endl
                       << std::endl;
         } break;
         case 1: {
             auto utf8_info = std::static_pointer_cast<UTF8>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "UTF8_info: " << std::endl
                       << "Lenght: " << utf8_info->lenght << std::endl
                       << "Data: " << utf8_info->bytes << std::endl
@@ -207,30 +209,29 @@ void ConstantPool::showPool() {
         } break;
         case 10: {
             auto method_ref = std::static_pointer_cast<Methodref>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Methodref_info:" << std::endl
                       << "Class Name: [" << method_ref->class_index << "] "
                       << method_ref->class_name << std::endl
-                      << "Name and Type: [" << method_ref->name_type_index << "] "
-                      << method_ref->name_and_type << std::endl
+                      << "Name and Type: [" << method_ref->name_type_index
+                      << "] " << method_ref->name_and_type << std::endl
                       << std::endl;
         } break;
         case 11: {
             auto interface_info =
                 std::static_pointer_cast<InterfaceMethodref>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "InterfaceMethodref_info:" << std::endl
                       << "Classe Name: [" << interface_info->class_index << "] "
                       << interface_info->class_name << std::endl
-                      << "Name and Type: ["
-                      << interface_info->name_type_index << "] "
-                      << interface_info->name_and_type << std::endl
+                      << "Name and Type: [" << interface_info->name_type_index
+                      << "] " << interface_info->name_and_type << std::endl
                       << std::endl;
 
         } break;
         case 8: {
             auto string_info = std::static_pointer_cast<String>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "String_info:" << std::endl
                       << "String index: [" << string_info->string_index << "] "
                       << string_info->string << std::endl
@@ -238,21 +239,21 @@ void ConstantPool::showPool() {
         } break;
         case 3: {
             auto integer_info = std::static_pointer_cast<Integer>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Integer_info:" << std::endl
                       << "Bytes: " << integer_info->value << std::endl
                       << std::endl;
         } break;
         case 4: {
             auto float_info = std::static_pointer_cast<Float>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Float_info:" << std::endl
                       << "Bytes: " << float_info->value << std::endl
                       << std::endl;
         } break;
         case 5: {
             auto long_info = std::static_pointer_cast<Long>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Long_info:" << std::endl
                       << "High bytes: " << long_info->high_bytes << std::endl
                       << "Low bytes: " << long_info->low_bytes << std::endl
@@ -260,7 +261,7 @@ void ConstantPool::showPool() {
         } break;
         case 6: {
             auto double_info = std::static_pointer_cast<Double>(elem.second);
-            std::cout << "[" << constant_pool_index << "] " 
+            std::cout << "[" << constant_pool_index << "] "
                       << "Double_info" << std::endl
                       << "High bytes: " << double_info->high_bytes << std::endl
                       << "Low bytes: " << double_info->low_bytes << std::endl
@@ -277,6 +278,7 @@ void ConstantPool::showPool() {
             break;
         }
     }
+    std::cout << std::endl;
 }
 
 void ConstantPool::resolve_pool() {

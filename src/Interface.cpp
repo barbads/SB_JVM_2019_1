@@ -4,7 +4,9 @@
 Interface::Interface(std::ifstream *file) { this->file = file; }
 
 void Interface::show() {
-    std::cout << "Interfaces:" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "               Interfaces" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     for (int i = 0; i < interface_count; i++) {
         std::cout << "  Class name: cp_info #" << itf[i] << " " << itf_name[i]
                   << std::endl;

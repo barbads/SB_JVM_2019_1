@@ -45,7 +45,8 @@
     "typeindex": "cpp",
     "memory": "cpp",
     "cstring": "cpp",
-    "functional": "cpp"
+    "functional": "cpp",
+    "iomanip": "cpp"
   },
   "editor.formatOnSave": true,
   "C_Cpp.formatting": "Default",

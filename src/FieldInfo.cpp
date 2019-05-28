@@ -34,11 +34,19 @@ void FieldInfo::seek() {
 std::vector<FieldInfoCte> *FieldInfo::getFieldInfo() { return &fi; }
 
 void FieldInfo::showFI() {
-    std::cout << "FieldInfo:" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "               FieldInfo" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     for (auto elem : fi) {
-        std::cout << "Field: " << elem.name << "\nDesc:" << elem.descriptor
-                  << std::endl
-                  << std::endl;
+        std::cout << "Name: " << elem.name << std::endl
+                  << "Descriptor: " << elem.descriptor << std::endl
+                  << "Access Flags: 0x" << std::setfill('0') << std::setw(4)
+                  << std::hex << elem.access_flags << std::endl;
+        for (int j = 0; j < elem.attributes_count; j++) {
+            std::cout << "Nome do Attributo " << j + 1 << ": "
+                      << elem.attributes[j].name << std::endl;
+        }
+        std::cout << std::endl;
     }
     std::cout << std::endl;
 }

@@ -19,7 +19,9 @@ std::vector<AttributeClassFile> *Attributes::getClassAttributes() {
 }
 
 void Attributes::show() {
-    std::cout << "Attributes: " << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "               Attributes" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     for (auto attribute : attr) {
         std::cout << "  Generic Info: " << std::endl;
         std::cout << "    Attribute name index: cp_info #"
@@ -32,4 +34,5 @@ void Attributes::show() {
                   << attribute.sourcefile_index << "  " << attribute.sourcefile
                   << std::endl;
     }
+    std::cout << std::endl;
 }
