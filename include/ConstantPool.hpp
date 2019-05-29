@@ -16,14 +16,16 @@ class ConstantPool : FileReader {
     std::vector<std::pair<int, std::shared_ptr<void>>> constant_pool;
     void add_to_pool(int tag);
     std::string resolve(int idx);
+    void resolve_pool();
 
   public:
     ConstantPool(std::ifstream *file);
-    void resolve_pool();
     void seek();
-    void showPool();
+    void show();
     std::string getNameByIndex(int index);
     int getLineTableIndex();
+    int getCodeIndex();
+    int cpCount();
 };
 
 #endif

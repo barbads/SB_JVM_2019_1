@@ -16,6 +16,7 @@ class Attributes : FileReader {
     void seek();
     std::vector<AttributeClassFile> *getClassAttributes();
     void show();
+    int attrCount();
 };
 
 #endif

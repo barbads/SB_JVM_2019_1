@@ -50,3 +50,5 @@ void FieldInfo::showFI() {
     }
     std::cout << std::endl;
 }
+
+int FieldInfo::fiCount() { return field_count; }

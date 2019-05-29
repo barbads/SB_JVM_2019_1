@@ -16,6 +16,8 @@ void Interface::show() {
 
 std::vector<int> Interface::getITF() { return itf; }
 
+int Interface::itfCount() { return interface_count; }
+
 void Interface::seek() {
     interface_count = getInfo(file, 2);
     for (int i = 0; i < interface_count; i++) {

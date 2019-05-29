@@ -1,8 +1,15 @@
 #include <ClassFile.hpp>
 
 ClassFile::ClassFile(std::ifstream *file) {
-    this->file = file;
-    this->cp   = new ConstantPool(this->file);
+    this->file  = file;
+    this->cp    = new ConstantPool(this->file);
+    access_flag = std::map<int, std::string>{
+        {0x01, "acc_public"},  {0x02, "acc_private"},
+        {0x21, "public"},      {0x4, "acc_protected"},
+        {0x08, "acc_static"},  {0x09, "public static"},
+        {0x10, "acc_final"},   {0x400, "acc_abstract"},
+        {0x800, "acc_strict"},
+    };
 }
 
 std::string ClassFile::getMagicNumber() {
@@ -19,8 +26,8 @@ std::string ClassFile::getMagicNumber() {
 void ClassFile::parse() {
     magic = getMagicNumber();
     if (magic != "cafebabe") {
-        throw std::range_error(
-            "Wrong file position, could not read magic number properly");
+        throw std::range_error("Wrong file position or invalid .class file, "
+                               "could not read magic number properly");
     }
 
     auto minor = getInfo(file, 2);
@@ -29,7 +36,7 @@ void ClassFile::parse() {
 
     cp->seek();
 
-    access_flags = getInfoHex(file, 2);
+    access_flags = getInfo(file, 2);
     this_class   = getInfo(file, 2);
     super_class  = getInfo(file, 2);
 
@@ -40,7 +47,6 @@ void ClassFile::parse() {
         auto name = cp->getNameByIndex(interface);
         itf->setITF(name);
     }
-    itf->show();
 
     fi = new FieldInfo(file);
     fi->seek();
@@ -53,10 +59,10 @@ void ClassFile::parse() {
                 cp->getNameByIndex(field.attributes[i].attribute_name_index);
         }
     }
-    fi->showFI();
 
     auto linetable = cp->getLineTableIndex();
-    mi             = new MethodInfo(file, linetable);
+    auto codeindex = cp->getCodeIndex();
+    mi             = new MethodInfo(file, cp);
     mi->seek();
     auto method_info = mi->getMethodInfo();
     for (auto &method : *method_info) {
@@ -67,7 +73,6 @@ void ClassFile::parse() {
                 cp->getNameByIndex(method.attributes[i].attribute_name_index);
         }
     }
-    mi->showMI();
 
     attr = new Attributes(file);
     attr->seek();
@@ -76,5 +81,25 @@ void ClassFile::parse() {
         attribute.name = cp->getNameByIndex(attribute.attribute_name_index);
         attribute.sourcefile = cp->getNameByIndex(attribute.sourcefile_index);
     }
+    std::cout << "General Information" << std::endl;
+    std::cout << "Minor " << minor << std::endl;
+    std::cout << "Major " << major << std::endl;
+    std::cout << "Constant Pool Count " << cp->cpCount() << std::endl;
+    std::cout << "access flags [" << access_flag[access_flags] << "] 0x"
+              << std::hex << access_flags << std::dec << std::endl;
+    std::cout << "this_class #" << this_class << " "
+              << cp->getNameByIndex(this_class) << std::endl;
+    std::cout << "super_class #" << super_class << " "
+              << cp->getNameByIndex(super_class) << std::endl;
+    std::cout << "Interfaces Count " << itf->itfCount() << std::endl;
+    std::cout << "Fields Count " << fi->fiCount() << std::endl;
+    std::cout << "Methods Count " << mi->miCount() << std::endl;
+    std::cout << "Attributes Count " << attr->attrCount() << std::endl;
+    std::cout << "-------------\n" << std::endl;
+
+    cp->show();
+    itf->show();
+    fi->showFI();
+    mi->showMI();
     attr->show();
 }

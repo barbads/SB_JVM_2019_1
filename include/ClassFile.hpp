@@ -7,6 +7,7 @@
 #include <MethodInfo.hpp>
 #include <fstream>
 #include <iostream>
+#include <map>
 #include <string>
 
 class ClassFile : FileReader {
@@ -15,7 +16,7 @@ class ClassFile : FileReader {
     std::string magic;
     std::string version;
     ConstantPool *cp;
-    std::string access_flags;
+    int access_flags;
     int this_class;
     int super_class;
     Interface *itf;
@@ -23,6 +24,7 @@ class ClassFile : FileReader {
     MethodInfo *mi;
     Attributes *attr;
     std::string getMagicNumber();
+    std::map<int, std::string> access_flag;
 
   public:
     ClassFile(std::ifstream *file);

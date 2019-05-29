@@ -36,3 +36,5 @@ void Attributes::show() {
     }
     std::cout << std::endl;
 }
+
+int Attributes::attrCount() { return attributes_count; }

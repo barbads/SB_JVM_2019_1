@@ -16,6 +16,7 @@ class Interface : FileReader {
     void show();
     std::vector<int> getITF();
     void setITF(std::string);
+    int itfCount();
 };
 
 #endif
