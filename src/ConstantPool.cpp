@@ -357,7 +357,9 @@ std::string ConstantPool::getNameByIndex(int index) {
     }
     if (constant_pool[index].first != 1 && constant_pool[index].first != 7 &&
         constant_pool[index].first != 10 && constant_pool[index].first != 9 &&
-        constant_pool[index].first != 8) {
+        constant_pool[index].first != 8 && constant_pool[index].first != 6 &&
+        constant_pool[index].first != 5 && constant_pool[index].first != 4 &&
+        constant_pool[index].first != 11) {
         char error[100];
         sprintf(error,
                 "Requested descriptor index %d is not a valid "
@@ -396,6 +398,33 @@ std::string ConstantPool::getNameByIndex(int index) {
                 ->string;
         return name;
     } break;
+    case 6: {
+        auto d = std::static_pointer_cast<Double>(constant_pool[index].second)
+                     ->getValue();
+        std::stringstream ss;
+        ss << d;
+        return ss.str();
+    } break;
+    case 4: {
+        auto f =
+            std::static_pointer_cast<Float>(constant_pool[index].second)->value;
+        std::stringstream ss;
+        ss << f;
+        return ss.str();
+    } break;
+    case 5: {
+        auto l = std::static_pointer_cast<Long>(constant_pool[index].second)
+                     ->getValue();
+        std::stringstream ss;
+        ss << l;
+        return ss.str();
+    } break;
+    case 11: {
+        auto interfaceRef = std::static_pointer_cast<InterfaceMethodref>(
+            constant_pool[index].second);
+        return "<" + interfaceRef->class_name + "/" +
+               interfaceRef->name_and_type + ">";
+    }
     }
     return "";
 }
