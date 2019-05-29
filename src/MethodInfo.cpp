@@ -62,7 +62,7 @@ MethodInfo::MethodInfo(std::ifstream *file, ConstantPool *cp) {
         {0x39, "dstore"},
         {0x47, "dstore_0"},
         {0x48, "dstore_1"},
-        {0x49, "dstore_3"},
+        {0x4a, "dstore_3"},
         {0x67, "dsub"},
         {0x59, "dup"},
         {0x5a, "dup_x1"},
