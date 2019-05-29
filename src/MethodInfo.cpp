@@ -441,7 +441,7 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
         ltn,
         "",
     };
-    return ac;*/
+    return ac;
 }
 
 std::vector<MethodInfoCte> *MethodInfo::getMethodInfo() { return &mi; }
@@ -513,7 +513,7 @@ void MethodInfo::showMI() {
             std::cout << "        Code length: " << attr.code_length
                       << std::endl
                       << std::endl;
-        }*/
+        }
     }
     std::cout << std::endl;
 }
