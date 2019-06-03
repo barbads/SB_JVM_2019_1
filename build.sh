@@ -13,8 +13,4 @@ make
 
 cd ..
 
-echo "#### Running `sb_tp1_2019-1`####"
-
-./sb_tp1_2019-1
-
-echo "Finished!"
+echo "Finished build! Execute calling ./sb-2019 program.class"
