@@ -26,7 +26,7 @@ std::string ClassFile::getMagicNumber() {
 void ClassFile::parse() {
     magic = getMagicNumber();
     if (magic != "cafebabe") {
-        throw std::range_error("Wrong file position or invalid .class file, "
+        throw std::range_error("Invalid .class file, "
                                "could not read magic number properly");
     }
 
@@ -60,9 +60,7 @@ void ClassFile::parse() {
         }
     }
 
-    auto linetable = cp->getLineTableIndex();
-    auto codeindex = cp->getCodeIndex();
-    mi             = new MethodInfo(file, cp);
+    mi = new MethodInfo(file, cp);
     mi->seek();
     auto method_info = mi->getMethodInfo();
     for (auto &method : *method_info) {

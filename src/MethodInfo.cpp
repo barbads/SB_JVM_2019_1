@@ -232,8 +232,8 @@ void MethodInfo::seek() {
             auto attr_name_index =
                 static_cast<unsigned short int>(getInfo(file, 2));
             if (attr_name_index == code_index) {
-                auto attribute_info = readAttrCode(attr_name_index);
-                ac.push_back(attribute_info);
+                auto attribute_code = readAttrCode(attr_name_index);
+                ac.push_back(attribute_code);
             } else {
                 auto attribute_info = readAttrInfo(attr_name_index);
                 ai.push_back(attribute_info);
