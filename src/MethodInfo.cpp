@@ -15,205 +15,106 @@ MethodInfo::MethodInfo(std::ifstream *file, ConstantPool *cp) {
         {0x800, "acc_strict"},
     };
     instruction_list = std::map<int, std::string>{
-        {0x32, "aaload"},
-        {0x53, "aastore"},
-        {0x01, "aconst_null"},
-        {0x19, "aload"},
-        {0x2a, "aload_0"},
-        {0x2b, "aload_1"},
-        {0x2c, "aload_2"},
-        {0x2d, "aload_3"},
-        {0xbd, "anearray"},
-        {0xb0, "areturn"},
-        {0xbe, "arraylenght"},
-        {0x3a, "astore"},
-        {0x4b, "astore_0"},
-        {0x4c, "astore_1"},
-        {0x4d, "astore_3"},
-        {0x4d, "astore_3"},
-        {0xbf, "athrow"},
-        {0x33, "baload"},
-        {0x54, "bastore"},
-        {0x10, "bipush"},
-        {0xca, "breakpoint"},
-        {0x34, "caload"},
-        {0x55, "castore"},
-        {0xc0, "checkcast"},
-        {0x90, "d2f"},
-        {0x8e, "d2i"},
-        {0x8f, "d2l"},
-        {0x63, "dadd"},
-        {0x31, "daload"},
-        {0x52, "dastore"},
-        {0x98, "dcmpg"},
-        {0x97, "dcmpl"},
-        {0x0e, "dconst_0"},
-        {0x0f, "dconst_1"},
-        {0x6f, "ddiv"},
-        {0x18, "dload"},
-        {0x26, "dload_0"},
-        {0x27, "dload_1"},
-        {0x28, "dload_2"},
-        {0x29, "dload_3"},
-        {0x6b, "dmul"},
-        {0x77, "dneg"},
-        {0x73, "drem"},
-        {0xaf, "dreturn"},
-        {0x39, "dstore"},
-        {0x47, "dstore_0"},
-        {0x48, "dstore_1"},
-        {0x4a, "dstore_3"},
-        {0x67, "dsub"},
-        {0x59, "dup"},
-        {0x5a, "dup_x1"},
-        {0x5b, "dup_x2"},
-        {0x5c, "dup2"},
-        {0x5d, "dup2_x1"},
-        {0x5e, "dup2_x2"},
-        {0x8d, "f2d"},
-        {0x8b, "f2i"},
-        {0x8c, "f2l"},
-        {0x62, "fadd"},
-        {0x30, "falod"},
-        {0x51, "fastore"},
-        {0x96, "fcmpg"},
-        {0x95, "fcmpl"},
-        {0x0b, "fconst_0"},
-        {0x0c, "fconst_1"},
-        {0x0d, "fconst_2"},
-        {0x6e, "fdiv"},
-        {0x17, "fload"},
-        {0x22, "fload_0"},
-        {0x23, "fload_1"},
-        {0x24, "fload_2"},
-        {0x25, "fload_3"},
-        {0x43, "fstore_0"},
-        {0x44, "fstore_1"},
-        {0x45, "fstore_2"},
-        {0x46, "fstore_3"},
-        {0x66, "fsub"},
-        {0xb4, "getfield"},
-        {0xb2, "getstatic"},
-        {0xa7, "goto"},
-        {0xc8, "goto_w"},
-        {0x91, "i2b"},
-        {0x92, "i2c"},
-        {0x87, "i2d"},
-        {0x86, "i2f"},
-        {0x85, "i2l"},
-        {0x93, "i2s"},
-        {0x60, "iadd"},
-        {0x2e, "iaload"},
-        {0x7e, "iand"},
-        {0x4f, "iastore"},
-        {0x02, "iconst_m1"},
-        {0x03, "iconst_0"},
-        {0x04, "iconst_1"},
-        {0x05, "iconst_2"},
-        {0x06, "iconst_3"},
-        {0x07, "iconst_7"},
-        {0x08, "iconst_8"},
-        {0x6c, "idiv"},
-        {0xa5, "if_acmpeg"},
-        {0xa6, "if_acmpne"},
-        {0x9f, "if_icmpeq"},
-        {0xa2, "if_icmpge"},
-        {0xa3, "if_icmpgt"},
-        {0xa4, "if_icmple"},
-        {0xa1, "if_icmplt"},
-        {0xa0, "if_icmpne"},
-        {0x99, "ifeq"},
-        {0x9c, "ifge"},
-        {0x9d, "ifgt"},
-        {0x9e, "ifle"},
-        {0x9b, "iflt"},
-        {0x9a, "ifne"},
-        {0xc7, "ifnonnull"},
-        {0xc6, "ifnull"},
-        {0x84, "iinc"},
-        {0x15, "iload"},
-        {0x1a, "iload_0"},
-        {0x1b, "iload_1"},
-        {0x1b, "iload_1"},
-        {0x1c, "iload_2"},
-        {0x1d, "iload_3"},
-        {0xfe, "impdep1"},
-        {0xff, "impdep2"},
-        {0xfe, "impdep1"},
-        {0xff, "impdep2"},
-        {0x68, "imul"},
-        {0x74, "ineg"},
-        {0xc1, "instanceof"},
-        {0xba, "invokedynamic"},
-        {0xb9, "invokeinterface"},
-        {0xb7, "invokespecial"},
-        {0xb6, "invokevirtual"},
-        {0x80, "ior"},
-        {0x70, "irem"},
-        {0x70, "ireturn"},
-        {0x7a, "ishl"},
-        {0x7a, "ishr"},
-        {0x36, "istore"},
-        {0x3b, "istore_0"},
-        {0x3c, "istore_1"},
-        {0x3e, "istore_2"},
-        {0x64, "isub"},
-        {0x7c, "iushr"},
-        {0x82, "ixor"},
-        {0xa8, "jsr"},
-        {0xc9, "jsr_w"},
-        {0x8a, "l2d"},
-        {0x89, "l2f"},
-        {0x88, "l2i"},
-        {0x61, "ladd"},
-        {0x2f, "laload"},
-        {0x7f, "land"},
-        {0x50, "lastore"},
-        {0x94, "lcmp"},
-        {0x09, "lconst_0"},
-        {0x0a, "lconst_1"},
-        {0x12, "ldc"},
-        {0x13, "ldc_w"},
-        {0x14, "ldc2_2"},
-        {0x6d, "ldiv"},
-        {0x16, "lload"},
-        {0x1e, "lload_0"},
-        {0x1f, "lload_1"},
-        {0x20, "lload_2"},
-        {0x21, "lload_3"},
-        {0x69, "lmul"},
-        {0x75, "lneg"},
-        {0xab, "lookupswitch"},
-        {0x81, "lor"},
-        {0x71, "lrem"},
-        {0xad, "lreturn"},
-        {0x79, "lshl"},
-        {0x7b, "ishr"},
-        {0x37, "lstore"},
-        {0x3f, "lstore_0"},
-        {0x40, "lstore_1"},
-        {0x41, "lstore_2"},
-        {0x42, "lstore_3"},
-        {0x65, "lsub"},
-        {0x7d, "lushr"},
-        {0x83, "lxor"},
-        {0xc2, "monitorrenter"},
-        {0xc3, "monitorrexit"},
-        {0xc5, "multianewarray"},
-        {0xbb, "new"},
-        {0xbc, "newarray"},
-        {0x00, "nop"},
-        {0x57, "pop"},
-        {0x58, "pop2"},
-        {0xb5, "putfield"},
-        {0xb3, "putstatic"},
-        {0xa9, "ret"},
-        {0xb1, "return"},
-        {0x35, "saload"},
-        {0x56, "sastore"},
-        {0x11, "sipush"},
-        {0x5f, "swap"},
-        {0xaa, "tableswitch"},
+        {0x32, "aaload"},        {0x53, "aastore"},
+        {0x01, "aconst_null"},   {0x19, "aload"},
+        {0x2a, "aload_0"},       {0x2b, "aload_1"},
+        {0x2c, "aload_2"},       {0x2d, "aload_3"},
+        {0xbd, "anearray"},      {0xb0, "areturn"},
+        {0xbe, "arraylenght"},   {0x3a, "astore"},
+        {0x4b, "astore_0"},      {0xae, "freturn"},
+        {0x4c, "astore_1"},      {0x4d, "astore_2"},
+        {0x4e, "astore_3"},      {0xbf, "athrow"},
+        {0x33, "baload"},        {0x54, "bastore"},
+        {0x10, "bipush"},        {0xca, "breakpoint"},
+        {0x34, "caload"},        {0x55, "castore"},
+        {0xc0, "checkcast"},     {0x90, "d2f"},
+        {0x8e, "d2i"},           {0x8f, "d2l"},
+        {0x63, "dadd"},          {0x31, "daload"},
+        {0x52, "dastore"},       {0x98, "dcmpg"},
+        {0x97, "dcmpl"},         {0x0e, "dconst_0"},
+        {0x0f, "dconst_1"},      {0x6f, "ddiv"},
+        {0x18, "dload"},         {0x26, "dload_0"},
+        {0x27, "dload_1"},       {0x28, "dload_2"},
+        {0x29, "dload_3"},       {0x6b, "dmul"},
+        {0x77, "dneg"},          {0x73, "drem"},
+        {0xaf, "dreturn"},       {0x39, "dstore"},
+        {0x47, "dstore_0"},      {0x48, "dstore_1"},
+        {0x4a, "dstore_3"},      {0x67, "dsub"},
+        {0x59, "dup"},           {0x5a, "dup_x1"},
+        {0x5b, "dup_x2"},        {0x5c, "dup2"},
+        {0x5d, "dup2_x1"},       {0x5e, "dup2_x2"},
+        {0x8d, "f2d"},           {0x8b, "f2i"},
+        {0x8c, "f2l"},           {0x62, "fadd"},
+        {0x30, "falod"},         {0x51, "fastore"},
+        {0x96, "fcmpg"},         {0x95, "fcmpl"},
+        {0x0b, "fconst_0"},      {0x0c, "fconst_1"},
+        {0x0d, "fconst_2"},      {0x6e, "fdiv"},
+        {0x17, "fload"},         {0x22, "fload_0"},
+        {0x23, "fload_1"},       {0x24, "fload_2"},
+        {0x25, "fload_3"},       {0x43, "fstore_0"},
+        {0x44, "fstore_1"},      {0x45, "fstore_2"},
+        {0x46, "fstore_3"},      {0x66, "fsub"},
+        {0xb4, "getfield"},      {0xb2, "getstatic"},
+        {0xa7, "goto"},          {0xc8, "goto_w"},
+        {0x91, "i2b"},           {0x92, "i2c"},
+        {0x87, "i2d"},           {0x86, "i2f"},
+        {0x85, "i2l"},           {0x93, "i2s"},
+        {0x60, "iadd"},          {0x2e, "iaload"},
+        {0x7e, "iand"},          {0x4f, "iastore"},
+        {0x02, "iconst_m1"},     {0x03, "iconst_0"},
+        {0x04, "iconst_1"},      {0x05, "iconst_2"},
+        {0x06, "iconst_3"},      {0x07, "iconst_4"},
+        {0x08, "iconst_5"},      {0x6c, "idiv"},
+        {0xa5, "if_acmpeg"},     {0xa6, "if_acmpne"},
+        {0x9f, "if_icmpeq"},     {0xa2, "if_icmpge"},
+        {0xa3, "if_icmpgt"},     {0xa4, "if_icmple"},
+        {0xa1, "if_icmplt"},     {0xa0, "if_icmpne"},
+        {0x99, "ifeq"},          {0x9c, "ifge"},
+        {0x9d, "ifgt"},          {0x9e, "ifle"},
+        {0x9b, "iflt"},          {0x9a, "ifne"},
+        {0xc7, "ifnonnull"},     {0xc6, "ifnull"},
+        {0x84, "iinc"},          {0x15, "iload"},
+        {0x1a, "iload_0"},       {0x1b, "iload_1"},
+        {0x1b, "iload_1"},       {0x1c, "iload_2"},
+        {0x1d, "iload_3"},       {0xfe, "impdep1"},
+        {0xff, "impdep2"},       {0xfe, "impdep1"},
+        {0xff, "impdep2"},       {0x68, "imul"},
+        {0x74, "ineg"},          {0xc1, "instanceof"},
+        {0xba, "invokedynamic"}, {0xb9, "invokeinterface"},
+        {0xb7, "invokespecial"}, {0xb6, "invokevirtual"},
+        {0x80, "ior"},           {0x70, "irem"},
+        {0x70, "ireturn"},       {0x7a, "ishl"},
+        {0x7a, "ishr"},          {0x36, "istore"},
+        {0x3b, "istore_0"},      {0x3c, "istore_1"},
+        {0x3e, "istore_2"},      {0x64, "isub"},
+        {0x7c, "iushr"},         {0x82, "ixor"},
+        {0xa8, "jsr"},           {0xc9, "jsr_w"},
+        {0x8a, "l2d"},           {0x89, "l2f"},
+        {0x88, "l2i"},           {0x61, "ladd"},
+        {0x2f, "laload"},        {0x7f, "land"},
+        {0x50, "lastore"},       {0x94, "lcmp"},
+        {0x09, "lconst_0"},      {0x0a, "lconst_1"},
+        {0x12, "ldc"},           {0x13, "ldc_w"},
+        {0x14, "ldc2_2"},        {0x6d, "ldiv"},
+        {0x16, "lload"},         {0x1e, "lload_0"},
+        {0x1f, "lload_1"},       {0x20, "lload_2"},
+        {0x21, "lload_3"},       {0x69, "lmul"},
+        {0x75, "lneg"},          {0xab, "lookupswitch"},
+        {0x81, "lor"},           {0x71, "lrem"},
+        {0xad, "lreturn"},       {0x79, "lshl"},
+        {0x7b, "ishr"},          {0x37, "lstore"},
+        {0x3f, "lstore_0"},      {0x40, "lstore_1"},
+        {0x41, "lstore_2"},      {0x42, "lstore_3"},
+        {0x65, "lsub"},          {0x7d, "lushr"},
+        {0x83, "lxor"},          {0xc2, "monitorrenter"},
+        {0xc3, "monitorrexit"},  {0xc5, "multianewarray"},
+        {0xbb, "new"},           {0xbc, "newarray"},
+        {0x00, "nop"},           {0x57, "pop"},
+        {0x58, "pop2"},          {0xb5, "putfield"},
+        {0xb3, "putstatic"},     {0xa9, "ret"},
+        {0xb1, "return"},        {0x35, "saload"},
+        {0x56, "sastore"},       {0x11, "sipush"},
+        {0x5f, "swap"},          {0xaa, "tableswitch"},
         {0xc4, "wide"},
     };
 }
@@ -256,14 +157,12 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 ss << " ";
             ss << instruction_list[byte_code];
             switch (byte_code) {
-            case 0x19:
             case 0x3a:
             case 0x10:
             case 0x18:
             case 0x39:
             case 0x17:
             case 0x38:
-            case 0x15:
             case 0x36:
             case 0x12:
             case 0x16:
@@ -272,32 +171,23 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
             case 0xa9:
                 ss << " #" << static_cast<unsigned int>(attr.code[j + 1])
                    << "  "
-                   << cp->getNameByIndex(static_cast<int>(attr.code[j + 1]))
+                   << cp->getNameByIndex(
+                          static_cast<unsigned int>(attr.code[j + 1]))
                    << std::endl;
+                j++;
+                break;
+            case 0x15:
+                ss << " " << static_cast<int>(attr.code[j + 1]) << std::endl;
+                j++;
+                break;
+            case 0x19:
+                ss << " " << static_cast<int>(attr.code[j + 1]) << std::endl;
                 j++;
                 break;
             case 0xbd:
             case 0xc0:
             case 0xb4:
             case 0xb2:
-            case 0xa7:
-            case 0xa5:
-            case 0xa6:
-            case 0x9f:
-            case 0xa2:
-            case 0xa3:
-            case 0xa4:
-            case 0xa1:
-            case 0xa0:
-            case 0x99:
-            case 0x9c:
-            case 0x9d:
-            case 0x9e:
-            case 0x9b:
-            case 0x9a:
-            case 0xc7:
-            case 0xc6:
-            case 0x84:
             case 0xc1:
             case 0xb7:
             case 0xb8:
@@ -319,6 +209,11 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                    << std::endl;
                 j += 2;
                 break;
+            case 0x84:
+                ss << "  #" << static_cast<int>(attr.code[j + 1]) << " "
+                   << "by " << static_cast<int>(attr.code[j + 2]) << std::endl;
+                j += 2;
+                break;
             case 0xc5:
                 ss << (static_cast<unsigned int>(attr.code[j + 1]) << 8) +
                           static_cast<unsigned int>(attr.code[j + 2])
@@ -328,6 +223,35 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                           static_cast<unsigned int>(attr.code[j + 2]))
                    << std::endl;
                 j += 3;
+                break;
+            case 0x9f:
+            case 0xa2:
+            case 0xa3:
+            case 0xa4:
+            case 0xa1:
+            case 0x99:
+            case 0x9c:
+            case 0x9d:
+            case 0x9e:
+            case 0x9b:
+            case 0x9a:
+            case 0xc7:
+            case 0xc6:
+            case 0xa7:
+            case 0xa5:
+            case 0xa6:
+                ss << "  #"
+                   << (j +
+                       static_cast<short int>(
+                           (static_cast<unsigned int>(attr.code[j + 1]) << 8) +
+                           static_cast<unsigned int>(attr.code[j + 2])))
+                   << "  +("
+                   << static_cast<short int>(
+                          (static_cast<unsigned int>(attr.code[j + 1]) << 8) +
+                          static_cast<unsigned int>(attr.code[j + 2]))
+                   << ") " << std::endl;
+                j += 2;
+                break;
             case 0xb9:
             case 0xba:
                 ss << "  #"
@@ -366,7 +290,7 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
 }
 
 AttributeInfo MethodInfo::readAttrInfo(short unsigned int attr_name_index) {
-    auto attr_length = static_cast<int>(getInfo(file, 4));
+    auto attr_length = getInfo(file, 4);
     auto attribute_info =
         reinterpret_cast<unsigned char *>(getInfoRaw(file, attr_length).data());
     AttributeInfo ai{attr_name_index, attr_length, attribute_info};
@@ -415,8 +339,8 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
             }
             ltn = linetable;
         } else {
-            int attr_len = getInfo(file, 4);
-            auto info    = reinterpret_cast<unsigned char *>(
+            auto attr_len = getInfo(file, 4);
+            auto info     = reinterpret_cast<unsigned char *>(
                 getInfoRaw(file, attr_len).data());
             auto insert_ai = AttributeInfo{
                 static_cast<unsigned short int>(name_index),
@@ -514,6 +438,11 @@ void MethodInfo::showMI() {
                       << std::endl
                       << std::endl;
         }
+        // for (auto elem : elem.attributes_info) {
+        //     std::cout << "Atribute Name " << elem.name << std::endl;
+        //     std::cout << "Attribute Length" << elem.attribute_lenght
+        //               << std::endl;
+        // }
     }
     std::cout << std::endl;
 }

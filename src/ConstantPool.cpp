@@ -119,18 +119,28 @@ void ConstantPool::add_to_pool(int tag) {
     } break;
     case 3: {
         // Integer
-        auto value   = getInfo(file, 4);
-        auto integer = std::make_shared<Integer>(value);
+        auto value = getInfoRaw(file, 4);
+        union int_bytes {
+            unsigned char buf[4];
+            int number;
+        } integer_bytes;
+        for (auto i = 0; i < 4; i++)
+            integer_bytes.buf[i] = value[3 - i];
+        auto integer = std::make_shared<Integer>(integer_bytes.number);
         constant_pool.push_back(std::make_pair(tag, integer));
     } break;
     case 4: {
         // Float
         auto value = getInfoRaw(file, 4);
-        float fvalue;
-        memcpy(&fvalue, &value, sizeof(fvalue));
-        auto float_info = std::make_shared<Float>(fvalue);
+        union float_bytes {
+            unsigned char buf[4];
+            float number;
+        } fvalue;
+        for (auto i = 0; i < 4; i++)
+            fvalue.buf[i] = value[3 - i];
+
+        auto float_info = std::make_shared<Float>(fvalue.number);
         constant_pool.push_back(std::make_pair(tag, float_info));
-        constant_pool.push_back(std::make_pair(-1, std::make_shared<float>(0)));
     } break;
     case 5: {
         // Long
@@ -284,7 +294,7 @@ void ConstantPool::show() {
 }
 
 void ConstantPool::resolve_pool() {
-    for (auto i = 0; i < constant_pool.size() - 2; i++) {
+    for (auto i = 1; i < constant_pool.size() - 2; i++) {
         if (constant_pool[i].first != 3 && constant_pool[i].first != 4 &&
             constant_pool[i].first != 5 && constant_pool[i].first != 6 &&
             constant_pool[i].first != -1) {
@@ -323,7 +333,9 @@ std::string ConstantPool::resolve(int idx) {
         case 10: {
             auto method_ref = std::static_pointer_cast<Methodref>(constant);
             method_ref->name_and_type = resolve(method_ref->name_type_index);
-            method_ref->class_name    = resolve(method_ref->class_index);
+            std::cout << method_ref->name_type_index
+                      << method_ref->name_and_type << std::endl;
+            method_ref->class_name = resolve(method_ref->class_index);
         } break;
         case 11: {
             auto interface_info =
@@ -387,9 +399,10 @@ std::string ConstantPool::getNameByIndex(int index) {
         return name;
     } break;
     case 9: {
+        auto fieldref =
+            std::static_pointer_cast<Fieldref>(constant_pool[index].second);
         auto name =
-            std::static_pointer_cast<Fieldref>(constant_pool[index].second)
-                ->name_and_type;
+            "<" + fieldref->class_name + "/" + fieldref->name_and_type + ">";
         return name;
     } break;
     case 8: {

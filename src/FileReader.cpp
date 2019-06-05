@@ -1,4 +1,5 @@
 #include <FileReader.hpp>
+#include <iostream>
 #include <sstream>
 #include <string.h>
 
@@ -11,16 +12,42 @@ int FileReader::getTag(std::ifstream *file) {
     return stoi(ss.str());
 }
 
-int FileReader::getInfo(std::ifstream *file, int offset) {
+unsigned int FileReader::getInfo(std::ifstream *file, int offset) {
     // getInfo reads next {offset} bytes and returns it as an int
     // We use this to get indexes
-    std::stringstream ss;
-    char tag[offset];
-    file->read(tag, offset);
-    for (auto i = 0; i < offset; ++i) {
-        ss << static_cast<int>(static_cast<unsigned char>(tag[i]));
+    if ((offset % 2 != 0) || offset > 4) {
+        throw std::invalid_argument("getInto only accepts 2 or 4");
     }
-    return stoi(ss.str());
+    char tag[4] = {0, 0, 0, 0};
+    file->read(tag, offset);
+    unsigned short int usi;
+    unsigned int ui;
+    unsigned int retval = 0;
+    switch (offset) {
+    case 2: {
+        union int_bytes {
+            unsigned char buf[2];
+            unsigned short int number;
+        } integer_bytes;
+        for (int i = 0; i < offset; i++)
+            integer_bytes.buf[i] = tag[1 - i];
+        retval = static_cast<unsigned int>(integer_bytes.number);
+    } break;
+    case 4: {
+        union int_bytes {
+            unsigned char buf[4];
+            unsigned int number;
+        } integer_bytes;
+        for (int i = 0; i < offset; i++)
+            integer_bytes.buf[i] = tag[3 - i];
+        retval = integer_bytes.number;
+    } break;
+    default:
+        std::invalid_argument(
+            "Only 2 or 4 bytes are available for this function");
+        break;
+    }
+    return retval;
 }
 
 std::string FileReader::getInfoHex(std::ifstream *file, int offset) {

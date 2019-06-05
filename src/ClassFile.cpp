@@ -35,7 +35,7 @@ void ClassFile::parse() {
     version    = major + "." + minor;
 
     cp->seek();
-
+    std::cout << "Here" << std::endl;
     access_flags = getInfo(file, 2);
     this_class   = getInfo(file, 2);
     super_class  = getInfo(file, 2);
@@ -66,9 +66,8 @@ void ClassFile::parse() {
     for (auto &method : *method_info) {
         method.name       = cp->getNameByIndex(method.name_index);
         method.descriptor = cp->getNameByIndex(method.descriptor_index);
-        for (int i = 0; i < method.attributes_count; i++) {
-            method.attributes[i].name =
-                cp->getNameByIndex(method.attributes[i].attribute_name_index);
+        for (auto &elem : method.attributes) {
+            elem.name = cp->getNameByIndex(elem.attribute_name_index);
         }
     }
 
