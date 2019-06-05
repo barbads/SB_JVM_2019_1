@@ -331,9 +331,7 @@ std::string ConstantPool::resolve(int idx) {
         case 10: {
             auto method_ref = std::static_pointer_cast<Methodref>(constant);
             method_ref->name_and_type = resolve(method_ref->name_type_index);
-            std::cout << method_ref->name_type_index
-                      << method_ref->name_and_type << std::endl;
-            method_ref->class_name = resolve(method_ref->class_index);
+            method_ref->class_name    = resolve(method_ref->class_index);
         } break;
         case 11: {
             auto interface_info =

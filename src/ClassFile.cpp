@@ -35,7 +35,6 @@ void ClassFile::parse() {
     version    = major + "." + minor;
 
     cp->seek();
-    std::cout << "Here" << std::endl;
     access_flags = getInfo(file, 2);
     this_class   = getInfo(file, 2);
     super_class  = getInfo(file, 2);
