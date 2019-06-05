@@ -157,8 +157,6 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 ss << " ";
             ss << instruction_list[byte_code];
             switch (byte_code) {
-            case 0x3a:
-            case 0x10:
             case 0x18:
             case 0x39:
             case 0x17:
@@ -167,21 +165,24 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
             case 0x12:
             case 0x16:
             case 0x37:
-            case 0xbc:
             case 0xa9:
                 ss << " #" << static_cast<unsigned int>(attr.code[j + 1])
-                   << "  "
+                   << "  <"
                    << cp->getNameByIndex(
                           static_cast<unsigned int>(attr.code[j + 1]))
-                   << std::endl;
+                   << ">" << std::endl;
                 j++;
                 break;
+            case 0x10:
             case 0x15:
-                ss << " " << static_cast<int>(attr.code[j + 1]) << std::endl;
-                j++;
-                break;
             case 0x19:
                 ss << " " << static_cast<int>(attr.code[j + 1]) << std::endl;
+                j++;
+                break;
+            case 0x3a:
+            case 0xbc:
+                ss << " " << static_cast<unsigned int>(attr.code[j + 1])
+                   << std::endl;
                 j++;
                 break;
             case 0xbd:
@@ -198,7 +199,6 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
             case 0xbb:
             case 0xb5:
             case 0xb3:
-            case 0x11:
                 ss << "  #"
                    << (static_cast<unsigned int>(attr.code[j + 1]) << 8) +
                           static_cast<unsigned int>(attr.code[j + 2])
@@ -209,6 +209,16 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                    << std::endl;
                 j += 2;
                 break;
+            case 0x11: {
+                union int_byte {
+                    unsigned char buf[2];
+                    short int number;
+                } integer;
+                integer.buf[0] = attr.code[j + 2];
+                integer.buf[1] = attr.code[j + 1];
+                ss << " " << integer.number << std::endl;
+                j += 2;
+            } break;
             case 0x84:
                 ss << "  #" << static_cast<int>(attr.code[j + 1]) << " "
                    << "by " << static_cast<int>(attr.code[j + 2]) << std::endl;

@@ -255,8 +255,6 @@ void ConstantPool::show() {
                       << "bytes: " << float_info->value << std::endl
                       << std::endl;
             i++;
-            std::cout << "[" << i << "] Float continuation\n\n";
-            elem++;
         } break;
         case 5: {
             auto long_info = std::static_pointer_cast<Long>(elem->second);
@@ -367,11 +365,12 @@ std::string ConstantPool::getNameByIndex(int index) {
                 index, constant_pool.size() - 1);
         throw std::invalid_argument(error);
     }
+
     if (constant_pool[index].first != 1 && constant_pool[index].first != 7 &&
         constant_pool[index].first != 10 && constant_pool[index].first != 9 &&
         constant_pool[index].first != 8 && constant_pool[index].first != 6 &&
         constant_pool[index].first != 5 && constant_pool[index].first != 4 &&
-        constant_pool[index].first != 11) {
+        constant_pool[index].first != 11 && constant_pool[index].first != 3) {
         char error[100];
         sprintf(error,
                 "Requested descriptor index %d is not a valid "
@@ -425,6 +424,13 @@ std::string ConstantPool::getNameByIndex(int index) {
         ss << f;
         return ss.str();
     } break;
+    case 3: {
+        auto i = std::static_pointer_cast<Integer>(constant_pool[index].second)
+                     ->value;
+        std::stringstream ss;
+        ss << i;
+        return ss.str();
+    }
     case 5: {
         auto l = std::static_pointer_cast<Long>(constant_pool[index].second)
                      ->getValue();
