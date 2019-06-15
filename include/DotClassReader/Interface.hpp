@@ -1,7 +1,7 @@
 #ifndef _INTERFACE_H_
 #define _INTERFACE_H_
 
-#include <FileReader.hpp>
+#include <DotClassReader/FileReader.hpp>
 
 class Interface : FileReader {
   private:

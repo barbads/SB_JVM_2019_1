@@ -1,7 +1,7 @@
 #ifndef _METHODINFO_H_
 #define _METHODINFO_H_
-#include <ConstantPool.hpp>
-#include <FileReader.hpp>
+#include <DotClassReader/ConstantPool.hpp>
+#include <DotClassReader/FileReader.hpp>
 #include <constants/AttributeCode.hpp>
 #include <constants/MethodInfoCte.hpp>
 #include <cstring>

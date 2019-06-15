@@ -1,7 +1,7 @@
 #ifndef _ConstantPool_H_
 #define _ConstantPool_H_
 
-#include <FileReader.hpp>
+#include <DotClassReader/FileReader.hpp>
 #include <fstream>
 #include <iostream>
 #include <memory>

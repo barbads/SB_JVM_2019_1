@@ -1,4 +1,4 @@
-#include <Attributes.hpp>
+#include <DotClassReader/Attributes.hpp>
 
 Attributes::Attributes(std::ifstream *file) { this->file = file; }
 

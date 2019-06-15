@@ -1,10 +1,10 @@
 #ifndef _ClassFile_H_
 #define _ClassFile_H_
-#include <Attributes.hpp>
-#include <ConstantPool.hpp>
-#include <FieldInfo.hpp>
-#include <Interface.hpp>
-#include <MethodInfo.hpp>
+#include <DotClassReader/Attributes.hpp>
+#include <DotClassReader/ConstantPool.hpp>
+#include <DotClassReader/FieldInfo.hpp>
+#include <DotClassReader/Interface.hpp>
+#include <DotClassReader/MethodInfo.hpp>
 #include <fstream>
 #include <iostream>
 #include <map>

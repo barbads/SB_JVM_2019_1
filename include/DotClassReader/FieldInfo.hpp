@@ -1,6 +1,6 @@
 #ifndef _FIELDINFO_H_
 #define _FIELDINFO_H_
-#include <FileReader.hpp>
+#include <DotClassReader/FileReader.hpp>
 #include <constants/FieldInfoCte.hpp>
 #include <fstream>
 #include <iomanip>

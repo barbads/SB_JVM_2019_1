@@ -1,4 +1,4 @@
-#include <Interface.hpp>
+#include <DotClassReader/Interface.hpp>
 #include <iostream>
 
 Interface::Interface(std::ifstream *file) { this->file = file; }

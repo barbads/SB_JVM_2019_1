@@ -1,4 +1,4 @@
-#include <ConstantPool.hpp>
+#include <DotClassReader/ConstantPool.hpp>
 #include <constants/Class.hpp>
 #include <constants/Double.hpp>
 #include <constants/Fieldref.hpp>

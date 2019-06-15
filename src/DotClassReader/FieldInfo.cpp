@@ -1,4 +1,4 @@
-#include <FieldInfo.hpp>
+#include <DotClassReader/FieldInfo.hpp>
 
 FieldInfo::FieldInfo(std::ifstream *file) {
     this->file = file;

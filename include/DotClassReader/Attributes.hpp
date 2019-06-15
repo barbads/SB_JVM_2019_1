@@ -1,7 +1,7 @@
 #ifndef _Attributes_H_
 #define _Attributes_H_
 
-#include <FileReader.hpp>
+#include <DotClassReader/FileReader.hpp>
 #include <constants/AttributeClassFile.hpp>
 #include <iostream>
 

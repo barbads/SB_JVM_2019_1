@@ -1,4 +1,4 @@
-#include <MethodInfo.hpp>
+#include <DotClassReader/MethodInfo.hpp>
 #include <sstream>
 
 MethodInfo::MethodInfo(std::ifstream *file, ConstantPool *cp) {

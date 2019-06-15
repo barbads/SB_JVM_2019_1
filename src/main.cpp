@@ -1,4 +1,5 @@
-#include <ClassFile.hpp>
+#include <DotClassReader/ClassFile.hpp>
+#include <JVM/JVM.hpp>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -15,7 +16,8 @@ int main(int argc, char const *argv[]) {
     } else if (argc == 2) {
         file = ifstream(argv[1], ios::binary);
     }
-    auto cf = ClassFile(&file);
+    auto jvm = JVM();
+    auto cf  = ClassFile(&file);
     cf.parse();
     return 0;
 }

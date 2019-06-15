@@ -1,4 +1,4 @@
-#include <ClassFile.hpp>
+#include <DotClassReader/ClassFile.hpp>
 
 ClassFile::ClassFile(std::ifstream *file) {
     this->file  = file;

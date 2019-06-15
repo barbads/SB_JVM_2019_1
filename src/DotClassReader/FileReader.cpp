@@ -1,4 +1,4 @@
-#include <FileReader.hpp>
+#include <DotClassReader/FileReader.hpp>
 #include <iostream>
 #include <sstream>
 #include <string.h>
