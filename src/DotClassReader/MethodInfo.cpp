@@ -332,11 +332,11 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
         auto name_index = getInfo(file, 2);
         if (name_index == line_table_index) {
             hasLT                                       = true;
-            unsigned int attribute_lenght               = getInfo(file, 4);
+            unsigned int attribute_length               = getInfo(file, 4);
             unsigned short int line_number_table_length = getInfo(file, 2);
             auto linetable                              = LineTableNumber{
                 static_cast<unsigned short int>(name_index),
-                attribute_lenght,
+                attribute_length,
                 line_number_table_length,
             };
             linetable.line_table =
@@ -373,6 +373,7 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
         ai,
         hasLT,
         ltn,
+        lvt,
         "",
     };
     return ac;
@@ -450,7 +451,7 @@ void MethodInfo::showMI() {
         }
         // for (auto elem : elem.attributes_info) {
         //     std::cout << "Atribute Name " << elem.name << std::endl;
-        //     std::cout << "Attribute Length" << elem.attribute_lenght
+        //     std::cout << "Attribute Length" << elem.attribute_length
         //               << std::endl;
         // }
     }
