@@ -23,16 +23,16 @@ std::string ClassFile::getMagicNumber() {
     }
     return ss.str();
 }
-void ClassFile::parse() {
+void ClassFile::Parse() {
     magic = getMagicNumber();
     if (magic != "cafebabe") {
         throw std::range_error("Invalid .class file, "
                                "could not read magic number properly");
     }
 
-    auto minor = getInfo(file, 2);
-    auto major = getInfo(file, 2);
-    version    = major + "." + minor;
+    minor   = getInfo(file, 2);
+    major   = getInfo(file, 2);
+    version = major + "." + minor;
 
     cp->seek();
     access_flags = getInfo(file, 2);
@@ -65,6 +65,7 @@ void ClassFile::parse() {
     for (auto &method : *method_info) {
         method.name       = cp->getNameByIndex(method.name_index);
         method.descriptor = cp->getNameByIndex(method.descriptor_index);
+        method.arg_length = parseDescriptor(method.descriptor);
         for (auto &elem : method.attributes) {
             elem.name = cp->getNameByIndex(elem.attribute_name_index);
         }
@@ -77,6 +78,45 @@ void ClassFile::parse() {
         attribute.name = cp->getNameByIndex(attribute.attribute_name_index);
         attribute.sourcefile = cp->getNameByIndex(attribute.sourcefile_index);
     }
+}
+
+// We can implement method type args here
+int ClassFile::parseDescriptor(std::string desc) {
+    auto args_start    = desc.find_first_of("(") + 1;
+    auto args_end      = desc.find_first_of(")");
+    auto args_to_parse = desc.substr(args_start, args_end - 1);
+    int length         = 0;
+    if (args_to_parse.size() == 0) {
+        return 0;
+    }
+    for (auto l = desc.begin(); l < desc.end(); l++) {
+        switch (*l) {
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'F':
+        case 'I':
+        case 'J':
+        case 'S':
+        case 'Z':
+            length++;
+            break;
+        case 'L': {
+            auto end_arg_pos =
+                desc.find_first_of(";", std::distance(desc.begin(), l));
+            length++;
+            l += end_arg_pos;
+        } break;
+        default:
+            break;
+        }
+    }
+    std::cout << length << std::endl;
+    return length;
+};
+
+void ClassFile::Show() {
+
     std::cout << "General Information" << std::endl;
     std::cout << "Minor " << minor << std::endl;
     std::cout << "Major " << major << std::endl;
@@ -99,3 +139,10 @@ void ClassFile::parse() {
     mi->showMI();
     attr->show();
 }
+
+MethodInfoCte ClassFile::getMainMethod() {
+    // if none main method is found, throws runtime exception
+    return mi->getMainMethod();
+}
+
+ConstantPool *ClassFile::getCP() { return cp; }

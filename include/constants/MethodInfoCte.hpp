@@ -1,3 +1,6 @@
+#ifndef _MethodInfoCte_H_
+#define _MethodInfoCte_H_
+
 #include <constants/AttributeCode.hpp>
 #include <string>
 
@@ -7,6 +10,7 @@ struct MethodInfoCte {
     std::string name;
     std::string descriptor;
     unsigned short int descriptor_index;
+    int arg_length;
     unsigned short int attributes_count;
     std::vector<AttributeCode> attributes;
     std::vector<AttributeInfo> attributes_info;
@@ -21,3 +25,5 @@ struct MethodInfoCte {
         attributes_info  = attri;
     }
 };
+
+#endif

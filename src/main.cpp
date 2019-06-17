@@ -16,8 +16,13 @@ int main(int argc, char const *argv[]) {
     } else if (argc == 2) {
         file = ifstream(argv[1], ios::binary);
     }
-    auto jvm = JVM();
-    auto cf  = ClassFile(&file);
-    cf.parse();
+    auto cf = ClassFile(&file);
+    cf.Parse();
+    // If you want to show class info, just uncomment the line bellow
+    cf.Show();
+
+    auto jvm = JVM(&cf);
+    jvm.Run();
+
     return 0;
 }

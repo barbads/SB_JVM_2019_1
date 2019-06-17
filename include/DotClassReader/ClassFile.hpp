@@ -5,6 +5,7 @@
 #include <DotClassReader/FieldInfo.hpp>
 #include <DotClassReader/Interface.hpp>
 #include <DotClassReader/MethodInfo.hpp>
+#include <constants/MethodInfoCte.hpp>
 #include <fstream>
 #include <iostream>
 #include <map>
@@ -12,6 +13,7 @@
 
 class ClassFile : FileReader {
   private:
+    int minor, major;
     std::ifstream *file;
     std::string magic;
     std::string version;
@@ -25,10 +27,13 @@ class ClassFile : FileReader {
     Attributes *attr;
     std::string getMagicNumber();
     std::map<int, std::string> access_flag;
-
+    int parseDescriptor(std::string desc);
   public:
     ClassFile(std::ifstream *file);
-    void parse();
+    void Parse();
+    void Show();
+    ConstantPool *getCP();
+    MethodInfoCte getMainMethod();
 };
 
 #endif

@@ -32,6 +32,7 @@ class MethodInfo : FileReader {
     std::vector<MethodInfoCte> *getMethodInfo();
     void showMI();
     int miCount();
+    MethodInfoCte getMainMethod();
 };
 
 #endif

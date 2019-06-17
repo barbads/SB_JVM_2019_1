@@ -1,5 +1,6 @@
 #include <DotClassReader/MethodInfo.hpp>
 #include <sstream>
+#include <system_error>
 
 MethodInfo::MethodInfo(std::ifstream *file, ConstantPool *cp) {
     this->file       = file;
@@ -390,6 +391,7 @@ void MethodInfo::showMI() {
         std::cout << "access flag [" << access_flags[elem.access_flags]
                   << "] 0x" << std::hex << elem.access_flags << std::dec
                   << std::endl;
+        std::cout << "args length " << elem.arg_length << std::endl;
         for (auto attr : elem.attributes) {
             std::cout << "  Attribute: " << attr.name << std::endl
                       << "    info: \n"
@@ -459,3 +461,18 @@ void MethodInfo::showMI() {
 }
 
 int MethodInfo::miCount() { return method_count; }
+
+MethodInfoCte MethodInfo::getMainMethod() {
+    MethodInfoCte *mir = nullptr;
+    for (auto &method : mi) {
+        if (method.name == "main") {
+            mir = &method;
+            break;
+        }
+    }
+    if (mir == nullptr) {
+        throw std::runtime_error(
+            "Missing main method, no entry point, aborting");
+    }
+    return *mir;
+}
