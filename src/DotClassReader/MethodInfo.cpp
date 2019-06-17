@@ -21,7 +21,7 @@ MethodInfo::MethodInfo(std::ifstream *file, ConstantPool *cp) {
         {0x2a, "aload_0"},       {0x2b, "aload_1"},
         {0x2c, "aload_2"},       {0x2d, "aload_3"},
         {0xbd, "anearray"},      {0xb0, "areturn"},
-        {0xbe, "arraylenght"},   {0x3a, "astore"},
+        {0xbe, "arraylength"},   {0x3a, "astore"},
         {0x4b, "astore_0"},      {0xae, "freturn"},
         {0x4c, "astore_1"},      {0x4d, "astore_2"},
         {0x4e, "astore_3"},      {0xbf, "athrow"},
@@ -374,7 +374,6 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
         ai,
         hasLT,
         ltn,
-        lvt,
         "",
     };
     return ac;
@@ -398,8 +397,8 @@ void MethodInfo::showMI() {
                       << "      index: " << attr.attribute_name_index
                       << std::endl
                       << "      length: " << attr.attribute_length << std::endl;
-            auto code_lenght = attr.code_length;
-            if (code_lenght) {
+            auto code_length = attr.code_length;
+            if (code_length) {
                 std::cout << "      code: " << std::endl;
                 std::cout << getCodeStr(attr);
             }
@@ -427,7 +426,7 @@ void MethodInfo::showMI() {
                 std::cout << "        Generic info:" << std::endl;
                 std::cout << "          Attribute name index: cp_info #"
                           << attr.ltn.attribute_name_index << std::endl;
-                std::cout << "          Attribute lenght: "
+                std::cout << "          Attribute length: "
                           << attr.ltn.attribute_length << std::endl;
                 std::cout << "        Specific info: " << std::endl;
                 if (!attr.ltn.line_table.empty()) {
