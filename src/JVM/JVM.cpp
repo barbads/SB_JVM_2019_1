@@ -15,12 +15,16 @@ void JVM::Run() {
         std::cout << "No code to be executed" << std::endl;
         return;
     }
+    ContextEntry main_context;
+    std::vector<ContextEntry> context{main_context};
+    stack_per_thread.push(StackFrame(context));
 
     auto code = method_attribute_code.code;
     executeByteCode(code);
 }
 
 void JVM::executeByteCode(std::vector<unsigned char> code) {
-    auto me = new MethodExecuter(code, class_loader->getCP());
-    me->Exec();
+    auto context = stack_per_thread.top().lva;
+    auto me      = new MethodExecuter(code, class_loader->getCP());
+    me->Exec(context);
 }

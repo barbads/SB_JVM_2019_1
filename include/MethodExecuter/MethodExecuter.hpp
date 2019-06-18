@@ -2,6 +2,7 @@
 #define _MethodExecuter_H_
 
 #include <DotClassReader/ConstantPool.hpp>
+#include <JVM/structures/ContextEntry.hpp>
 #include <JVM/structures/StackFrame.hpp>
 
 #include <stack>
@@ -16,12 +17,12 @@ class MethodExecuter {
     bool isDupInstruction(unsigned char byte);
     ConstantPool *cp;
     // Pair (classname, value)
-    StackFrame sf;
+    StackFrame *sf;
     std::stack<std::pair<std::string, int>> local_operand_stack;
 
   public:
     MethodExecuter(std::vector<unsigned char> code, ConstantPool *cp);
-    void Exec();
+    void Exec(std::vector<ContextEntry> ce);
 };
 
 #endif
