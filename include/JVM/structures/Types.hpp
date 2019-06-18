@@ -4,11 +4,11 @@
 #include <map>
 #include <string>
 
-enum Type { B, C, D, F, I, J, S, Z, L, A };
+enum Type { B, C, D, F, I, J, S, Z, L };
 
 static const std::map<std::string, Type> TypeMap = std::map<std::string, Type>{
     {"B", B}, {"C", C}, {"D", D}, {"F", F}, {"I", I},
-    {"J", J}, {"S", S}, {"Z", Z}, {"L", L}, {"[", A}};
+    {"J", J}, {"S", S}, {"Z", Z}, {"L", L}};
 
 /*B = byte
   C = char

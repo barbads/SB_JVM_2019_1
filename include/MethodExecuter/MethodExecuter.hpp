@@ -22,7 +22,7 @@ class MethodExecuter {
 
   public:
     MethodExecuter(std::vector<unsigned char> code, ConstantPool *cp);
-    void Exec(std::vector<ContextEntry> ce);
+    ContextEntry Exec(std::vector<ContextEntry> ce);
 };
 
 #endif
