@@ -128,7 +128,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             byte++;
             auto objRef = sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (!objRef.isReference) {
+            if (!objRef.isReference()) {
                 std::runtime_error("astore called over a non-reference object");
             }
             // return address type??
@@ -142,7 +142,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             unsigned int index = *byte - 0x4b;
             auto objRef        = sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (!objRef.isReference) {
+            if (!objRef.isReference()) {
                 std::runtime_error("astore called over a non-reference object");
             }
             sf->lva[index] = objRef;
