@@ -1,10 +1,10 @@
 #ifndef _FIELDMAP_H_
 #define _FIELDMAP_H_
 
+#include <JVM/structures/ContextEntry.hpp>
 #include <map>
 #include <string>
-#include <JVM/structures/ContextEntry.hpp>
 
-typedef std::map<string, ContextEntry> ClassFields;
+typedef std::map<int, ContextEntry> ClassFields;
 
 #endif

@@ -1,3 +1,4 @@
+
 #include <DotClassReader/ClassFile.hpp>
 
 ClassFile::ClassFile(std::ifstream *file) {
@@ -147,6 +148,4 @@ MethodInfoCte ClassFile::getMainMethod() {
 
 ConstantPool *ClassFile::getCP() { return cp; }
 
-std::vector<FieldInfoCte>* getFields() {
-    return fi->getFieldInfo();
-}
+std::vector<FieldInfoCte> *ClassFile::getFields() { return fi->getFieldInfo(); }
