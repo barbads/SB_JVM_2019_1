@@ -10,10 +10,10 @@
 class ContextEntry {
   private:
     bool hasContext;
-    std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     std::string field_name;
 
   public:
+    std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
     Type entry_type;
     std::string class_name;
@@ -205,6 +205,40 @@ class ContextEntry {
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         default:
+            break;
+        }
+    }
+
+    bool operator==(const ContextEntry b) const {
+        switch (entry_type) {
+        case B: {
+            return context_value.b == b.context_value.b;
+        } break;
+        case I: {
+            return context_value.i == b.context_value.i;
+        } break;
+        case D: {
+            return context_value.d == b.context_value.d;
+        } break;
+        case F: {
+            return context_value.f == b.context_value.f;
+        } break;
+        case J: {
+            return context_value.j == b.context_value.j;
+        } break;
+        case S: {
+            return context_value.s == b.context_value.s;
+        } break;
+        default:
+            if (isArray) {
+                if (arrayRef.size() != b.arrayRef.size())
+                    return false;
+                return (arrayRef == b.arrayRef);
+            } else if (l.size() > 1) {
+                if (l.size() != b.l.size())
+                    return false;
+                return l == b.l;
+            }
             break;
         }
     }
