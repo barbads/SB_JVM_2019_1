@@ -1,4 +1,5 @@
 #include <MethodExecuter/MethodExecuter.hpp>
+#include <math.h>
 
 MethodExecuter::MethodExecuter(std::vector<unsigned char> code,
                                ConstantPool *cp) {
@@ -171,6 +172,175 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             auto top = sf->operand_stack.top();
             sf->operand_stack.push(top);
         } break;
+        //// comecei aqui
+        case 0x33: // baload
+        case 0x34: // caload
+        case 0x31: // daload
+        {
+            auto index = sf->operand_stack.top().context_value.i;
+            sf->operand_stack.pop();
+            auto arrayref = sf->operand_stack.top().getArray();
+            sf->operand_stack.pop();
+
+            if (arrayref.size() >= index)
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            auto value = arrayref.at(index);
+            sf->operand_stack.push(value);
+
+        } break;
+
+        case 0x54: // bastore
+        case 0x55: // castore
+        case 0x52: // dastore
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto index = sf->operand_stack.top().context_value.i;
+            sf->operand_stack.pop();
+            auto arrayref = sf->operand_stack.top().getArray();
+            sf->operand_stack.pop();
+
+            arrayref[index] = value;
+            if (arrayref.size() >= index)
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            auto value = arrayref.at(index);
+            sf->operand_stack.push(value);
+
+        } break;
+        case 0x10: // bipush
+        {
+            auto value = *(byte + 1);
+            byte++;
+            auto entry = ContextEntry("", B, reinterpret_cast<void *>(&value));
+            sf->operand_stack.push(entry);
+
+        } break;
+
+        case 0xc0: // checkcast
+                   // Vieiraaaa salva nois
+
+        case 0x90: // d2f
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value.entry_type = F;
+            sf->operand_stack.push(value);
+
+        } break;
+        case 0x8e: // d2i
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value.entry_type = I;
+            sf->operand_stack.push(value);
+
+        } break;
+        case 0x8f: // d2l
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value.entry_type = L;
+            sf->operand_stack.push(value);
+
+        } break;
+
+        case 0x63: // dadd
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            sf->operand_stack.push(value1 + value2);
+
+        } break;
+        case 0x98: // dcmp<op> dcmpg
+        case 0x97: // dcmp<op> dcmpl
+        {
+            int i       = 1;
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
+            if (value1.context_value.d > value2.context_value.d) {
+                entry.context_value.i = 1;
+                sf->operand_stack.push(entry);
+            } else if (value1.context_value.d < value2.context_value.d) {
+                entry.context_value.i = -1;
+                sf->operand_stack.push(entry);
+            } else if (value1.context_value.d == value2.context_value.d) {
+                entry.context_value.i = 0;
+                sf->operand_stack.push(entry);
+            } else if (isnan(value1.context_value.d) ||
+                       isnan(value2.context_value.d)) {
+                if (*byte == 0x98) {
+                    entry.context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                } else if (*byte == 0x97) {
+                    entry.context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                }
+            }
+        } break;
+        case 0xe: // dconst_<d> dconst_0
+        case 0xf: // dconst_<d> dconst_1
+        {
+            char e     = *byte - 0xe;
+            auto entry = ContextEntry("", D, reinterpret_cast<void *>(&e));
+            sf->operand_stack.push(entry);
+
+        } break;
+        case 0x6f: // ddiv
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            sf->operand_stack.push(value1 / value2);
+
+        } break;
+        case 0x18: // dload
+        {
+            auto index = *(byte + 1);
+            byte++;
+            auto value = sf->lva.at(index);
+            sf->operand_stack.push(value);
+
+        } break;
+        case 0x26: // dload_0
+        case 0x27: // dload_1
+        case 0x28: // dload_2
+        case 0x29: // dload_3
+        {
+            auto index = *(byte)-0x26;
+            auto value = sf->lva.at(index);
+            sf->operand_stack.push(value);
+
+        } break;
+
+        case 0x6b: // dmul
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            sf->operand_stack.push(value1 * value2);
+        }
+        case 0x77: // dneg
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            double d = -1;
+            sf->operand_stack.push(
+                value * ContextEntry("", D, reinterpret_cast<void *>(&d)));
+
+        } break;
+        case 0x73: // drem
+        case 0xaf: // dreturn
+
         default:
             break;
         }
