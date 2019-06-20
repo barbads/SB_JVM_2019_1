@@ -10,12 +10,12 @@
 class ContextEntry {
   private:
     bool hasContext;
-    bool isNull;
     std::vector<ContextEntry> l;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     std::string fieldName;
 
   public:
+    bool isNull;
     Type entry_type;
     std::string class_name;
     bool isArray;

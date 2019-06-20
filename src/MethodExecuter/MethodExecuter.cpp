@@ -311,6 +311,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         } break;
         case 0x18: // dload
+        case 0x16: // llong
         {
             auto index = *(byte + 1);
             byte++;
@@ -433,9 +434,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
                 sf->operand_stack.push(value1);
             }
         }break;
-        default:
-            break;
-        }
+        
         case 0x5c: // dup2
         {
             auto value1 = sf->operand_stack.top();
@@ -583,6 +582,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             sf->operand_stack.push(entry);
         }break;
         case 0x17: //fload
+        case 0x15: //iload
         {
             auto index = *(byte + 1);
             byte++;
@@ -590,6 +590,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             sf->operand_stack.push(value);
 
         }break;
+        
         case 0x22: //fload_0
         case 0x23: //fload_1
         case 0x24: //fload_2
@@ -631,7 +632,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         }break;    
         case 0x43: //fstore_0
-        case 0x44: //fstore_1
+       case 0x44: //fstore_1
         case 0x45: //fstore_2
         case 0x46: //fstore_3
         {
@@ -732,11 +733,185 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         case 0xa5: // if_acmpeq
         case 0xa6: // if_acmpne
-        {
+        {   
+            auto index = *(byte) - 0xa5;
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            auto branchbyte1 = *(++byte);
+            auto branchbyte2 = *(++byte);
+            if (index == 0) {
+                if (value1 == value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+            } else if (index == 1) {
+                if (value1 != value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+            }
             
         }break;
 
         
+        case 0x9f: //if_icmpeq
+        case 0xa0: //if_icmpne
+        case 0xa1: //if_icmplt
+        case 0xa2: //if_icmpge
+        case 0xa3: //if_icmpgt
+        case 0xa4: //if_icmple
+        {
+            auto index = *(byte) - 0x9f;
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            
+            auto branchbyte1 = *(++byte);
+            auto branchbyte2 = *(++byte);
+            
+            if (index == 0) {
+                if (value1 == value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+            } else if (index == 1) {
+                if (value1 != value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+               else if (index == 2) {
+                if (value1 < value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+                else if (index == 3) {
+                if (value1 <= value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+                else if (index == 4) {
+                if (value1 > value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                }
+                else if (index == 5) {
+                if (value1 >= value2) {
+                    auto offset = (branchbyte1 << 8) | branchbyte2;
+                    byte += offset
+                } 
+            }
+
+        }break;
+        
+        case 0x99: //ifeq
+        case 0x9a: //ifne
+        case 0x9b: //iflt
+        case 0x9c: //ifge
+        case 0x9d: //ifgt
+        case 0x9e: //ifle
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int n = *(byte) - 0x99;
+            if (n==0) { 
+                if (!value) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
+            else if (n == 1){
+                if (value) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
+            }
+            else if (n==2) {
+                if (value<0) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
+            }
+            else if (n==3) {
+                if (value>=0) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
+            }
+            else if (n==4) {
+                if (value>0) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
+            }
+            else {
+                if (value<=0) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
+                }
+            }                
+        } break; 
+        case 0xc6: // ifnull
+        case 0xc7: // ifnonnull
+        {
+            auto index = *(byte) - 0xc6;
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            if index == 0 {
+                if value.isNull {    
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                }
+
+            } else {
+                if !value.isNull {    
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                }
+            }    
+        }break;
+        case 0x84: //iinc
+        {
+         char constant; 
+         auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto index         = *(++byte);
+            sf->lva[index]     = value;  
+
+        }break;
+
+        case 0x26: //iload_0
+        case 0x27: //iload_1
+        case 0x28: //iload_2
+        case 0x29: //iload_3
+        {
+            auto index = *(byte)-0x26;
+            auto value = sf->lva.at(index);
+            sf->operand_stack.push(value);
+        }break;
+
+        
+
+        default:
+            break;
+        }
     }
     std::cout << "operand stack" << std::endl;
     while (not sf->operand_stack.empty()) {
