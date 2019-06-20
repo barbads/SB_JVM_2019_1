@@ -10,7 +10,6 @@
 class ContextEntry {
   private:
     bool hasContext;
-    std::vector<ContextEntry> l;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     std::string fieldName;
 
@@ -18,6 +17,8 @@ class ContextEntry {
     bool isNull;
     Type entry_type;
     std::string class_name;
+    std::vector<ContextEntry> l;
+
     bool isArray;
     union ContextEntryUnion {
         unsigned char b;
@@ -178,8 +179,6 @@ class ContextEntry {
         }
     }
 
-    
-
     ContextEntry operator-(const ContextEntry b) const {
         switch (entry_type) {
         case B: {
@@ -220,7 +219,8 @@ class ContextEntry {
         }
     }
 
-    ContextEntry(std::string className, std::string fieldName, Type entryType, void *value) {
+    ContextEntry(std::string className, std::string fieldName, Type entryType,
+                 void *value) {
         this->class_name = className;
         this->field_name = fieldName;
         this->entry_type = entryType;
