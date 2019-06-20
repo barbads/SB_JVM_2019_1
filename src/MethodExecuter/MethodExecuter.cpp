@@ -889,11 +889,11 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         }break;
         case 0x84: //iinc
         {
-         char constant; 
-         auto value = sf->operand_stack.top();
-            sf->operand_stack.pop();
-            auto index         = *(++byte);
-            sf->lva[index]     = value;  
+        //  char constant; 
+        //  auto value = sf->operand_stack.top();
+        //     sf->operand_stack.pop();
+        //     auto index         = *(++byte);
+        //     sf->lva[index]     = value;  
 
         }break;
 
@@ -907,7 +907,12 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             sf->operand_stack.push(value);
         }break;
 
-        
+        if (!value) { 
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte = byte + offset;
+                }
 
         default:
             break;
