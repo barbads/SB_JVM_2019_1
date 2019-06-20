@@ -34,6 +34,7 @@ class ClassFile : FileReader {
     void Show();
     ConstantPool *getCP();
     MethodInfoCte getMainMethod();
+    std::vector<FieldInfoCte>* getFields();
 };
 
 #endif

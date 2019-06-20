@@ -146,3 +146,7 @@ MethodInfoCte ClassFile::getMainMethod() {
 }
 
 ConstantPool *ClassFile::getCP() { return cp; }
+
+std::vector<FieldInfoCte>* getFields() {
+    return fi->getFieldInfo();
+}

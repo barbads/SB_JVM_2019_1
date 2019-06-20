@@ -104,6 +104,43 @@ class ContextEntry {
         }
     }
 
+    ContextEntry operator&(const ContextEntry b) const {
+        switch (entry_type) {
+        case B: {
+            auto nvalue = context_value.b & b.context_value.b;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case I: {
+            auto nvalue = context_value.i & b.context_value.i;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case D: {
+            auto nvalue = context_value.d & b.context_value.d;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case F: {
+            auto nvalue = context_value.f & b.context_value.f;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case J: {
+            auto nvalue = context_value.j & b.context_value.j;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case S: {
+            auto nvalue = context_value.s & b.context_value.s;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        default:
+            break;
+        }
+    }
+
     ContextEntry operator*(const ContextEntry b) const {
         switch (entry_type) {
         case B: {
@@ -141,8 +178,51 @@ class ContextEntry {
         }
     }
 
-    ContextEntry(std::string className, Type entryType, void *value) {
+    
+
+    ContextEntry operator-(const ContextEntry b) const {
+        switch (entry_type) {
+        case B: {
+            auto nvalue = context_value.b - b.context_value.b;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case I: {
+            auto nvalue = context_value.i - b.context_value.i;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case D: {
+            auto nvalue = context_value.d - b.context_value.d;
+            if (b.context_value.d == 0.0 && context_value.d == 0.0) {
+                nvalue = 0.0;
+            }
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case F: {
+            auto nvalue = context_value.f - b.context_value.f;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case J: {
+            auto nvalue = context_value.j - b.context_value.j;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        case S: {
+            auto nvalue = context_value.s - b.context_value.s;
+            return ContextEntry("", entry_type,
+                                reinterpret_cast<void *>(&nvalue));
+        } break;
+        default:
+            break;
+        }
+    }
+
+    ContextEntry(std::string className, std::string fieldName, Type entryType, void *value) {
         this->class_name = className;
+        this->field_name = fieldName;
         this->entry_type = entryType;
         isArray          = false;
         hasContext       = false;

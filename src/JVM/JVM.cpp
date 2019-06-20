@@ -1,10 +1,12 @@
 #include <JVM/JVM.hpp>
 #include <iostream>
+#include <JVM/structures/FieldMap.hpp>
 
 JVM::JVM(ClassFile *cl) { class_loader = cl; }
 
 void JVM::Run() {
     MethodInfoCte main = class_loader->getMainMethod();
+    auto field_vector = class_loader->getFields();
     if (main.attributes_count < 1) {
         throw std::out_of_range(
             "Method main must have only one code attribute, check .class file");
