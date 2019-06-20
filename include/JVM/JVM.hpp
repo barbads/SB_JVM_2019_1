@@ -2,6 +2,7 @@
 #define _JVM_H_
 
 #include <DotClassReader/ClassFile.hpp>
+#include <JVM/structures/FieldMap.hpp>
 #include <JVM/structures/StackFrame.hpp>
 #include <MethodExecuter/MethodExecuter.hpp>
 
@@ -12,6 +13,7 @@ class JVM {
   private:
     std::stack<StackFrame> stack_per_thread;
     ClassFile *class_loader;
+    ClassFields convertFieldIntoMap(std::vector<FieldInfoCte>);
 
   public:
     JVM(ClassFile *cl);

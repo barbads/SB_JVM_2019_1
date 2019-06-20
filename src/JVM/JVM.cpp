@@ -1,12 +1,23 @@
 #include <JVM/JVM.hpp>
+#include <JVM/structures/ContextEntry.hpp>
 #include <iostream>
-#include <JVM/structures/FieldMap.hpp>
 
 JVM::JVM(ClassFile *cl) { class_loader = cl; }
 
+ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
+    ClassFields cf;
+    for (auto f : fi) {
+        if (f.descriptor.length() == 1) {
+            int zero     = 0;
+            auto zeroref = reinterpret_cast<void *>(&zero);
+        }
+    }
+}
+
 void JVM::Run() {
     MethodInfoCte main = class_loader->getMainMethod();
-    auto field_vector = class_loader->getFields();
+    auto field_vector  = *class_loader->getFields();
+    auto field_map     = convertFieldIntoMap(field_vector);
     if (main.attributes_count < 1) {
         throw std::out_of_range(
             "Method main must have only one code attribute, check .class file");

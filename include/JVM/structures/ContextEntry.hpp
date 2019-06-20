@@ -11,7 +11,7 @@ class ContextEntry {
   private:
     bool hasContext;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
-    std::string fieldName;
+    std::string field_name;
 
   public:
     bool isNull;
@@ -117,16 +117,6 @@ class ContextEntry {
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
-        case D: {
-            auto nvalue = context_value.d & b.context_value.d;
-            return ContextEntry("", entry_type,
-                                reinterpret_cast<void *>(&nvalue));
-        } break;
-        case F: {
-            auto nvalue = context_value.f & b.context_value.f;
-            return ContextEntry("", entry_type,
-                                reinterpret_cast<void *>(&nvalue));
-        } break;
         case J: {
             auto nvalue = context_value.j & b.context_value.j;
             return ContextEntry("", entry_type,
@@ -219,10 +209,8 @@ class ContextEntry {
         }
     }
 
-    ContextEntry(std::string className, std::string fieldName, Type entryType,
-                 void *value) {
+    ContextEntry(std::string className, Type entryType, void *value) {
         this->class_name = className;
-        this->field_name = fieldName;
         this->entry_type = entryType;
         isArray          = false;
         hasContext       = false;
