@@ -3,6 +3,7 @@
 
 #include <DotClassReader/ConstantPool.hpp>
 #include <JVM/structures/ContextEntry.hpp>
+#include <JVM/structures/FieldMap.hpp>
 #include <JVM/structures/StackFrame.hpp>
 
 #include <stack>

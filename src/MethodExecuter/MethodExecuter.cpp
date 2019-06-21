@@ -32,12 +32,15 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0x53: // aastore
         {
+
             auto value = sf->operand_stack.top();
+            std::shared_ptr<ContextEntry> value_ref(
+                new ContextEntry(std::move(value)));
             sf->operand_stack.pop();
             auto index = sf->operand_stack.top().context_value.i;
             sf->operand_stack.pop();
             if (sf->operand_stack.top().isArray) {
-                sf->operand_stack.top().addToArray(index, value);
+                sf->operand_stack.top().addToArray(index, value_ref);
             } else {
                 throw std::runtime_error(
                     "Stack operand is not an array reference");
@@ -644,11 +647,19 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         case 0xb4: // getfield
         {
-
+            auto indexbyte1 = *(++byte);
+            auto indexbyte2 = *(++byte);
+            int index       = (indexbyte1 << 8) + indexbyte2;
+            auto objref     = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            if (objref.isNull)
+                throw std::runtime_error("NullPointerException");
+            auto value = *(objref.cf->at(index));
+            sf->operand_stack.push(value);
         } break;
         case 0xb2: // getstatic
         {
-
+            // precisamos de teste pra fazer esse nao entendi 😬
         } break;
         case 0xa7: // goto
         {

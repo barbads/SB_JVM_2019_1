@@ -13,6 +13,7 @@ class ContextEntry {
     std::string field_name;
 
   public:
+    std::map<int, std::shared_ptr<ContextEntry>> *cf;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
     Type entry_type;
@@ -30,6 +31,161 @@ class ContextEntry {
         short s;
         bool z;
     } context_value;
+
+    ContextEntry(std::string className, Type entryType, void *value) {
+        this->class_name = className;
+        this->entry_type = entryType;
+        isArray          = false;
+        hasContext       = false;
+        isNull           = false;
+        switch (entryType) {
+        case B:
+            context_value.b = *reinterpret_cast<unsigned char *>(value);
+            break;
+        case I:
+            context_value.i = *reinterpret_cast<int *>(value);
+            break;
+        case D:
+            context_value.d = *reinterpret_cast<double *>(value);
+            break;
+        case F:
+            context_value.f = *reinterpret_cast<float *>(value);
+            break;
+        case J:
+            context_value.j = *reinterpret_cast<long *>(value);
+            break;
+        case S:
+            context_value.s = *reinterpret_cast<short *>(value);
+            break;
+        case L:
+            if (value != nullptr) {
+                hasContext = true;
+                isArray    = false;
+                auto received_context =
+                    reinterpret_cast<std::vector<ContextEntry> *>(value);
+                for (auto c : *received_context) {
+                    l.push_back(c);
+                }
+            } else {
+                isNull = true;
+            }
+            break;
+        default:
+            throw std::runtime_error("This type is not recognized");
+            break;
+        }
+    }
+
+    ContextEntry(Type entryType, int arraySize) {
+        entry_type = entryType;
+        isArray    = true;
+        hasContext = false;
+        arrayRef   = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
+        for (auto &ref : arrayRef) {
+            ref = nullptr;
+        }
+    }
+
+    ContextEntry() { isNull = true; }
+
+    ContextEntry(std::map<int, std::shared_ptr<ContextEntry>> *cf,
+                 void *value) {
+        // case an objectref has fields
+        isNull     = false;
+        hasContext = false;
+        isArray    = false;
+        entry_type = L;
+        this->cf   = cf;
+        if (value != nullptr) {
+            hasContext = true;
+            auto received_context =
+                reinterpret_cast<std::vector<ContextEntry> *>(value);
+            for (auto c : *received_context) {
+                l.push_back(c);
+            }
+        }
+    }
+
+    void PrintValue() {
+        if (hasContext) {
+            for (auto entry : l) {
+                std::cout << "\n\tClass Name " << class_name << "\n\tValue:";
+                entry.PrintValue();
+                std::cout << std::endl;
+            }
+        }
+        switch (entry_type) {
+        case B:
+            std::cout << context_value.b;
+            break;
+        case I:
+            std::cout << context_value.i;
+            break;
+        case D:
+            std::cout << context_value.d;
+            break;
+        case F:
+            std::cout << context_value.f;
+            break;
+        case J:
+            std::cout << context_value.j;
+            break;
+        case S:
+            std::cout << context_value.s;
+            break;
+        default:
+            break;
+        }
+    }
+
+    bool isReference() {
+        // Case hascontext so its a class entry
+        if (hasContext || isArray)
+            return true;
+        // Case array we need to check if all elements are of type ref
+        return true;
+    }
+
+    std::vector<ContextEntry> getArray() {
+        if (!isNull) {
+            auto array = std::vector<ContextEntry>(arrayRef.size());
+            for (auto i = 0; i < arrayRef.size(); i++) {
+                if (arrayRef[i] != nullptr) {
+                    array[i] = *arrayRef[i];
+                }
+            }
+            return array;
+        }
+        throw std::runtime_error("NullPointerException");
+    }
+
+    void addToArray(int index, std::shared_ptr<ContextEntry> ce) {
+        if (!isArray) {
+            throw std::runtime_error("Could not push to a not-array structure");
+        }
+        if (ce->entry_type != this->entry_type) {
+            throw std::runtime_error(
+                "ArrayIndexOutOfBoundsException: Could not add a reference "
+                "from a different type into array");
+        }
+        if (index >= arrayRef.size()) {
+            throw std::runtime_error("ArrayIndexOutOfBoundsException");
+        }
+        auto pos = arrayRef.begin() + index;
+        arrayRef.insert(pos, ce);
+    }
+
+    ContextEntry arrayLength() {
+        if (!isArray) {
+            throw std::runtime_error(
+                "Could not count length in a non-array structure");
+        }
+        if (isNull) {
+            throw std::runtime_error("NullPointerException");
+        }
+        int length = arrayRef.size();
+        return ContextEntry("", I, reinterpret_cast<void *>(&length));
+    }
 
     ContextEntry operator+(const ContextEntry b) const {
         switch (entry_type) {
@@ -234,148 +390,13 @@ class ContextEntry {
                 if (arrayRef.size() != b.arrayRef.size())
                     return false;
                 return (arrayRef == b.arrayRef);
-            } else if (l.size() > 1) {
+            } else if (l.size() > 0) {
                 if (l.size() != b.l.size())
                     return false;
                 return l == b.l;
             }
             break;
         }
-    }
-
-    ContextEntry(std::string className, Type entryType, void *value) {
-        this->class_name = className;
-        this->entry_type = entryType;
-        isArray          = false;
-        hasContext       = false;
-        isNull           = false;
-        switch (entryType) {
-        case B:
-            context_value.b = *reinterpret_cast<unsigned char *>(value);
-            break;
-        case I:
-            context_value.i = *reinterpret_cast<int *>(value);
-            break;
-        case D:
-            context_value.d = *reinterpret_cast<double *>(value);
-            break;
-        case F:
-            context_value.f = *reinterpret_cast<float *>(value);
-            break;
-        case J:
-            context_value.j = *reinterpret_cast<long *>(value);
-            break;
-        case S:
-            context_value.s = *reinterpret_cast<short *>(value);
-            break;
-        case L:
-            if (value != nullptr) {
-                hasContext = true;
-                isArray    = false;
-                auto received_context =
-                    reinterpret_cast<std::vector<ContextEntry> *>(value);
-                for (auto c : *received_context) {
-                    l.push_back(c);
-                }
-            } else {
-                isNull = true;
-            }
-            break;
-        default:
-            throw std::runtime_error("This type is not recognized");
-            break;
-        }
-    }
-
-    ContextEntry(Type entryType, int arraySize) {
-        entry_type = entryType;
-        arrayRef   = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
-        for (auto &ref : arrayRef) {
-            ref = nullptr;
-        }
-    }
-
-    ContextEntry() { isNull = true; }
-
-    void PrintValue() {
-        if (hasContext) {
-            for (auto entry : l) {
-                std::cout << "\n\tClass Name " << class_name << "\n\tValue:";
-                entry.PrintValue();
-                std::cout << std::endl;
-            }
-        }
-        switch (entry_type) {
-        case B:
-            std::cout << context_value.b;
-            break;
-        case I:
-            std::cout << context_value.i;
-            break;
-        case D:
-            std::cout << context_value.d;
-            break;
-        case F:
-            std::cout << context_value.f;
-            break;
-        case J:
-            std::cout << context_value.j;
-            break;
-        case S:
-            std::cout << context_value.s;
-            break;
-        default:
-            break;
-        }
-    }
-
-    bool isReference() {
-        // Case hascontext so its a class entry
-        if (hasContext || isArray)
-            return true;
-        // Case array we need to check if all elements are of type ref
-        return true;
-    }
-
-    std::vector<ContextEntry> getArray() {
-        if (!isNull) {
-            auto array = std::vector<ContextEntry>(arrayRef.size());
-            for (auto i = 0; i < arrayRef.size(); i++) {
-                if (arrayRef[i] != nullptr) {
-                    array[i] = *arrayRef[i];
-                }
-            }
-            return array;
-        }
-        throw std::runtime_error("NullPointerException");
-    }
-
-    void addToArray(int index, ContextEntry ce) {
-        if (!isArray) {
-            throw std::runtime_error("Could not push to a not-array structure");
-        }
-        if (ce.entry_type != this->entry_type) {
-            throw std::runtime_error(
-                "ArrayIndexOutOfBoundsException: Could not add a reference "
-                "from a different type into array");
-        }
-        if (index >= arrayRef.size()) {
-            throw std::runtime_error("ArrayIndexOutOfBoundsException");
-        }
-        auto pos = arrayRef.begin() + index;
-        arrayRef.insert(pos, std::make_shared<ContextEntry>(ce));
-    }
-
-    ContextEntry arrayLength() {
-        if (!isArray) {
-            throw std::runtime_error(
-                "Could not count length in a non-array structure");
-        }
-        if (isNull) {
-            throw std::runtime_error("NullPointerException");
-        }
-        int length = arrayRef.size();
-        return ContextEntry("", I, reinterpret_cast<void *>(&length));
     }
 };
 

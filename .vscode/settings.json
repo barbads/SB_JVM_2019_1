@@ -46,7 +46,7 @@
     "memory": "cpp",
     "cstring": "cpp",
     "functional": "cpp",
-    "map": "cpp"
+    "map": "cpp",
     "iomanip": "cpp"
   },
   "editor.formatOnSave": true,
