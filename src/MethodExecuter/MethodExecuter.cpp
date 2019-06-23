@@ -100,7 +100,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("NegativeArraySizeException");
             }
             // do we need to save this into a heap? Idk
-            sf->operand_stack.push(&ContextEntry(L, count));
+            auto ref = ContextEntry(L, count);
+            sf->operand_stack.push(&ref);
         } break;
         case 0xb0: // areturn
         {
@@ -329,9 +330,10 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             if (value2.context_value.i == 0) {
                 throw std::runtime_error("ArithmeticException");
-            } else
-                sf->operand_stack.push(value1 / value2);
-
+            } else {
+                auto result = value1 / value2;
+                sf->operand_stack.push(&result);
+            }
         } break;
         case 0x18: // dload
         {
@@ -393,7 +395,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 fmod(value1->context_value.d, value2->context_value.d);
 
             sf->operand_stack.push(
-                &ContextEntry("", D, reinterpret_cast<void *>(&result)));
+                new ContextEntry("", D, reinterpret_cast<void *>(&result)));
         } break;
         case 0xaf: // dreturn
         case 0xae: // freturn
@@ -676,7 +678,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 fmod(value1->context_value.f, value2->context_value.f);
 
             sf->operand_stack.push(
-                &ContextEntry("", F, reinterpret_cast<void *>(&result)));
+                new ContextEntry("", F, reinterpret_cast<void *>(&result)));
 
         } break;
         case 0x38: // fstore
@@ -945,7 +947,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto index    = *(++byte);
             char constant = *(++byte);
-            sf->lva[index].context_value.i += constant;
+            sf->lva[index]->context_value.i += constant;
 
         } break;
         case 0xc1: // instanceof
@@ -961,14 +963,14 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (objref->isNull) {
                 // push 0 into the stack
                 sf->operand_stack.push(
-                    &ContextEntry("", I, reinterpret_cast<void *>(&zero)));
+                    new ContextEntry("", I, reinterpret_cast<void *>(&zero)));
             } else {
                 if (objref->class_name == cp->getNameByIndex(index)) {
-                    sf->operand_stack.push(
-                        &ContextEntry("", I, reinterpret_cast<void *>(&one)));
+                    sf->operand_stack.push(new ContextEntry(
+                        "", I, reinterpret_cast<void *>(&one)));
                 } else {
-                    sf->operand_stack.push(
-                        &ContextEntry("", I, reinterpret_cast<void *>(&zero)));
+                    sf->operand_stack.push(new ContextEntry(
+                        "", I, reinterpret_cast<void *>(&zero)));
                 }
             }
         } break;
@@ -988,30 +990,33 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
             int i = -1;
-            sf->operand_stack.push(
-                value * ContextEntry("", I, reinterpret_cast<void *>(&i)));
-
+            auto result =
+                *value * ContextEntry("", I, reinterpret_cast<void *>(&i));
+            sf->operand_stack.push(&result);
         } break;
-        case 0xc1: // instanceof
         case 0xba: // invokedynamic
+            break;
         case 0xb9: // invokeinterface
+            break;
         case 0xb8: // invokestatic
+            break;
         case 0xb6: // invokevirtual
+            break;
         case 0x80: // ior
         {
-            auto value1 = sf->operand_stack.top();
+            auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto value2 = sf->operand_stack.top();
+            auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-
-            sf->operand_stack.push(value1 || value2);
+            auto result = value1 || value2;
+            sf->operand_stack.push(&result);
 
         } break;
         case 0x70: // irem
         {
-            auto value1 = sf->operand_stack.top();
+            auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto value2 = sf->operand_stack.top();
+            auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
 
             auto result = value1.context_value.i % value2.context_value.i;
@@ -1020,37 +1025,38 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("ArithmeticException");
 
                 sf->operand_stack.push(
-                    ContextEntry("", I, reinterpret_cast<void *>(&result)));
+                    new ContextEntry("", I, reinterpret_cast<void *>(&result)));
             }
-            break;
+        } break;
         case 0xac: // ireturn
         case 0x78: // ishl
-            auto value1 = sf->operand_stack.top();
+        {
+            auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            int value2 = sf->operand_stack.top().context_value.i & 0x1f;
+            int value2 = sf->operand_stack.top()->context_value.i & 0x1f;
             sf->operand_stack.pop();
 
             auto result = value1.context_value.i << value2;
             sf->operand_stack.push(
-                ContextEntry("", I, reinterpret_cast<void *>(&result)));
-
+                new ContextEntry("", I, reinterpret_cast<void *>(&result)));
+        } break;
         case 0x7a: // ishr
         {
-            auto value1 = sf->operand_stack.top();
+            auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            int value2 = sf->operand_stack.top().context_value.i & 0x1f;
+            int value2 = sf->operand_stack.top()->context_value.i & 0x1f;
             sf->operand_stack.pop();
             ContextEntry("", I, static_cast<void *>(&value1));
-            auto result = value1 >> value2;
+            auto result = value1.context_value.i >> value2;
             sf->operand_stack.push(
-                ContextEntry("", I, reinterpret_cast<void *>(&result)));
+                new ContextEntry("", I, reinterpret_cast<void *>(&result)));
         } break;
         case 0xb7: // invokespecial
         {
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
-            auto code          = cm[index].attributes[0].code;
+            std::vector<unsigned char> code(cm.at(index).attributes[0].code);
             Exec(code, sf->lva);
         } break;
         case 0x3b: // istore_0
@@ -1067,21 +1073,21 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto value2 = sf->operand_stack.top().context_value.i & 0x1f;
+            auto value2 = sf->operand_stack.top()->context_value.i & 0x1f;
             sf->operand_stack.pop();
 
-            auto result = value1.context_value.i >> value2;
+            auto result = value1->context_value.i >> value2;
             sf->operand_stack.push(
-                ContextEntry("", I, reinterpret_cast<void *>(&result)));
+                new ContextEntry("", I, reinterpret_cast<void *>(&result)));
         } break;
         case 0x82: // ixor
         {
-            auto value1 = sf->operand_stack.top();
+            auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto value2 = sf->operand_stack.top();
+            auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-
-            sf->operand_stack.push(value1 ^ value2);
+            auto result = value1 ^ value2;
+            sf->operand_stack.push(&result);
         } break;
         case 0xa8: // jsr
         {
@@ -1113,40 +1119,36 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
-            if (value1.context_value.j > value2.context_value.j) {
+            if (value1->context_value.j > value2->context_value.j) {
                 entry.context_value.i = 1;
-                sf->operand_stack.push(entry);
-            } else if (value1.context_value.j < value2.context_value.j) {
+                sf->operand_stack.push(&entry);
+            } else if (value1->context_value.j < value2->context_value.j) {
                 entry.context_value.i = -1;
-                sf->operand_stack.push(entry);
-            } else if (value1.context_value.j == value2.context_value.j) {
+                sf->operand_stack.push(&entry);
+            } else if (value1->context_value.j == value2->context_value.j) {
                 entry.context_value.i = 0;
-                sf->operand_stack.push(entry);
+                sf->operand_stack.push(&entry);
             }
-            break;
+        } break;
         case 0x9: // lconst_0
         case 0xa: // lconst_1
         {
             char e     = *byte - 0x9;
             auto entry = ContextEntry("", I, reinterpret_cast<void *>(&e));
-            sf->operand_stack.push(entry);
-
+            sf->operand_stack.push(&entry);
         } break;
-
         case 0x12: // ldc
         case 0x13: // ldc_w
         case 0x14: // ldc2_w
-
         default:
             break;
         }
-        }
-            std::cout << "operand stack" << std::endl;
-            while (not sf->operand_stack.empty()) {
-                std::cout << sf->operand_stack.top().class_name << " ";
-                sf->operand_stack.top().PrintValue();
-                std::cout << std::endl;
-                sf->operand_stack.pop();
-            }
-        }
     }
+    std::cout << "operand stack" << std::endl;
+    while (not sf->operand_stack.empty()) {
+        std::cout << sf->operand_stack.top()->class_name << " ";
+        sf->operand_stack.top()->PrintValue();
+        std::cout << std::endl;
+        sf->operand_stack.pop();
+    }
+}

@@ -7,7 +7,7 @@ JVM::JVM(ClassFile *cl) { class_loader = cl; }
 ClassMethods JVM::convertMethodIntoMap(std::vector<MethodInfoCte> mi) {
     ClassMethods cm;
     for (auto m : mi) {
-        cm[m.name_index] = m;
+        cm.insert(std::pair<int, MethodInfoCte>(m.name_index, m));
     }
     return cm;
 }
@@ -80,8 +80,9 @@ void JVM::Run() {
 
 void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields cf,
                           ClassMethods cm) {
-    auto context = &stack_per_thread.top().lva;
-    context->push_back(&ContextEntry(&cf, nullptr));
+    auto context  = &stack_per_thread.top().lva;
+    auto startlva = ContextEntry(&cf, nullptr);
+    context->push_back(&startlva);
     auto me = new MethodExecuter(class_loader->getCP(), cm);
     me->Exec(code, *context);
 }
