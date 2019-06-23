@@ -128,7 +128,15 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0x3a: // astore
         {
-            int index = *(byte + 1);
+            int index        = -1;
+            const int index1 = *(byte + 1);
+            if (wide) {
+                const int index2 = *(byte + 2);
+                index            = index1 << 8 + index2;
+                byte++;
+            } else {
+                index = index1;
+            }
             byte++;
             auto objRef = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -181,6 +189,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         case 0x31: // daload
         case 0x30: // faload
         case 0x2e: // iaload
+        case 0x2f: // laload
         {
             auto index = sf->operand_stack.top().context_value.i;
             sf->operand_stack.pop();
@@ -199,6 +208,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         case 0x52: // dastore
         case 0x51: // fastore
         case 0x4f: // iastore
+        case 0x50: // lastore
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -228,6 +238,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         case 0x90: // d2f
         case 0x86: // i2f
+        case 0x89: // l2f
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -236,6 +247,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         } break;
         case 0x8e: // d2i
+        case 0x88: // l2i
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -256,6 +268,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         case 0x63: // dadd
         case 0x62: // fadd
         case 0x60: // iadd
+        case 0x61: // ladd
         {
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -304,19 +317,29 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0x6f: // ddiv
         case 0x6e: // fdiv
+        case 0x6d: // ldiv
         {
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
             sf->operand_stack.pop();
-
-            sf->operand_stack.push(value1 / value2);
+            if (value2.context_value.i == 0) {
+                throw std::runtime_error("ArithmeticException");
+            } else
+                sf->operand_stack.push(value1 / value2);
 
         } break;
         case 0x18: // dload
-        case 0x16: // llong
         {
-            auto index = *(byte + 1);
+            int index        = -1;
+            const int index1 = *(byte + 1);
+            if (wide) {
+                const int index2 = *(byte + 2);
+                index            = index1 << 8 + index2;
+                byte++;
+            } else {
+                index = index1;
+            }
             byte++;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
@@ -337,6 +360,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         case 0x6b: // dmul
         case 0x6a: // fmul
+        case 0x68: // imul
         {
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -368,6 +392,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0xaf: // dreturn
         case 0xae: // freturn
+
         {
             auto retval = sf->operand_stack.top();
             while (!sf->operand_stack.empty()) {
@@ -377,9 +402,18 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0x39: // dstore
         {
+            int index        = -1;
+            const int index1 = *(byte + 1);
+            if (wide) {
+                const int index2 = *(byte + 2);
+                index            = index1 << 8 + index2;
+                byte++;
+            } else {
+                index = index1;
+            }
+            byte++;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto index         = *(++byte);
             sf->lva[index]     = value;
             sf->lva[index + 1] = value;
         } break;
@@ -398,6 +432,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         case 0x66: // fsub
         case 0x67: // dsub
+        case 0x64: // isub
         {
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -524,6 +559,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         case 0x8d: // f2d
         case 0x87: // i2d
+        case 0x8a: // l2d
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -556,17 +592,17 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             auto value2 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
-            if (value1.context_value.d > value2.context_value.d) {
+            if (value1.context_value.f > value2.context_value.f) {
                 entry.context_value.i = 1;
                 sf->operand_stack.push(entry);
-            } else if (value1.context_value.d < value2.context_value.d) {
+            } else if (value1.context_value.f < value2.context_value.f) {
                 entry.context_value.i = -1;
                 sf->operand_stack.push(entry);
-            } else if (value1.context_value.d == value2.context_value.d) {
+            } else if (value1.context_value.f == value2.context_value.f) {
                 entry.context_value.i = 0;
                 sf->operand_stack.push(entry);
-            } else if (isnan(value1.context_value.d) ||
-                       isnan(value2.context_value.d)) {
+            } else if (isnan(value1.context_value.f) ||
+                       isnan(value2.context_value.f)) {
                 if (*byte == 0x96) {
                     entry.context_value.i = 1;
                     sf->operand_stack.push(entry);
@@ -586,8 +622,17 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0x17: // fload
         case 0x15: // iload
+        case 0x16: // lload
         {
-            auto index = *(byte + 1);
+            int index        = -1;
+            const int index1 = *(byte + 1);
+            if (wide) {
+                const int index2 = *(byte + 2);
+                index            = index1 << 8 + index2;
+                byte++;
+            } else {
+                index = index1;
+            }
             byte++;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
@@ -626,6 +671,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
 
         } break;
         case 0x38: // fstore
+        case 0x36: // istore
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -699,6 +745,7 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
             sf->operand_stack.push(value);
         } break;
         case 0x7e: // iand
+        case 0x7f: // land
         {
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -890,11 +937,9 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         } break;
         case 0x84: // iinc
         {
-            //  char constant;
-            //  auto value = sf->operand_stack.top();
-            //     sf->operand_stack.pop();
-            //     auto index         = *(++byte);
-            //     sf->lva[index]     = value;
+            auto index    = *(++byte);
+            char constant = *(++byte);
+            sf->lva[index].context_value.i += constant;
 
         } break;
 
@@ -903,26 +948,169 @@ ContextEntry MethodExecuter::Exec(std::vector<ContextEntry> ce) {
         case 0x1c: // iload_2
         case 0x1d: // iload_3
         {
-            auto index = *(byte)-0x26;
+            auto index = *(byte)-0x1a;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
-            if (!value.context_value.i) {
-                auto branchbyte1 = *(++byte);
-                auto branchbyte2 = *(++byte);
-                auto offset      = (branchbyte1 << 8) | branchbyte2;
-                byte             = byte + offset;
-            }
+
         } break;
+
+        case 0x74: // imul
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int i = -1;
+            sf->operand_stack.push(
+                value * ContextEntry("", I, reinterpret_cast<void *>(&i)));
+
+        } break;
+        case 0xc1: // instanceof
+        case 0xba: // invokedynamic
+        case 0xb9: // invokeinterface
+        case 0xb7: // invokespecial
+        case 0xb8: // invokestatic
+        case 0xb6: // invokevirtual
+        case 0x80: // ior
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            sf->operand_stack.push(value1 || value2);
+
+        } break;
+        case 0x70: // irem
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            auto result = value1.context_value.i % value2.context_value.i;
+
+            if (result == 0) {
+                throw std::runtime_error("ArithmeticException");
+
+                sf->operand_stack.push(
+                    ContextEntry("", I, reinterpret_cast<void *>(&result)));
+            }
+            break;
+        case 0xac: // ireturn
+        case 0x78: // ishl
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int value2 = sf->operand_stack.top().context_value.i & 0x1f;
+            sf->operand_stack.pop();
+
+            auto result = value1.context_value.i << value2;
+            sf->operand_stack.push(
+                ContextEntry("", I, reinterpret_cast<void *>(&result)));
+
+        case 0x7a: // ishr
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int value2 = sf->operand_stack.top().context_value.i & 0x1f;
+            sf->operand_stack.pop();
+            ContextEntry("", I, static_cast<void *>(&value1));
+            auto result = value1 >> value2;
+            sf->operand_stack.push(
+                ContextEntry("", I, reinterpret_cast<void *>(&result)));
+        } break;
+        case 0x3b: // istore_0
+        case 0x3c: // istore_1
+        case 0x3d: // istore_2
+        case 0x3e: // istore_3
+        {
+            auto index = *(byte)-0x3b;
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            sf->lva[index] = value;
+        } break;
+        case 0x7c: // iushr
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top().context_value.i & 0x1f;
+            sf->operand_stack.pop();
+
+            auto result = value1.context_value.i >> value2;
+            sf->operand_stack.push(
+                ContextEntry("", I, reinterpret_cast<void *>(&result)));
+        } break;
+        case 0x82: // ixor
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            sf->operand_stack.push(value1 ^ value2);
+        } break;
+        case 0xa8: // jsr
+        {
+            // auto branchbyte1 = *(++byte);
+            // auto branchbyte2 = *(++byte);
+
+            // auto offset = (branchbyte1 << 8) | branchbyte2;
+
+            // byte += offset;
+
+        } break;
+        case 0xc9: // jsr_w
+        {
+            // auto branchbyte1 = *(++byte);
+            // auto branchbyte2 = *(++byte);
+            // auto branchbyte3 = *(++byte);
+            // auto branchbyte4 = *(++byte);
+
+            // auto offset = (branchbyte1 << 24) | (branchbyte2 << 16) |
+            //               (branchbyte3 << 8) | branchbyte4;
+
+            // byte += offset;
+        } break;
+        case 0x94: // lcmp
+        {
+            int i       = 1;
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
+            if (value1.context_value.j > value2.context_value.j) {
+                entry.context_value.i = 1;
+                sf->operand_stack.push(entry);
+            } else if (value1.context_value.j < value2.context_value.j) {
+                entry.context_value.i = -1;
+                sf->operand_stack.push(entry);
+            } else if (value1.context_value.j == value2.context_value.j) {
+                entry.context_value.i = 0;
+                sf->operand_stack.push(entry);
+            }
+            break;
+        case 0x9: // lconst_0
+        case 0xa: // lconst_1
+        {
+            char e     = *byte - 0x9;
+            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&e));
+            sf->operand_stack.push(entry);
+
+        } break;
+
+        case 0x12: // ldc
+        case 0x13: // ldc_w
+        case 0x14: // ldc2_w
 
         default:
             break;
         }
+        }
+            std::cout << "operand stack" << std::endl;
+            while (not sf->operand_stack.empty()) {
+                std::cout << sf->operand_stack.top().class_name << " ";
+                sf->operand_stack.top().PrintValue();
+                std::cout << std::endl;
+                sf->operand_stack.pop();
+            }
+        }
     }
-    std::cout << "operand stack" << std::endl;
-    while (not sf->operand_stack.empty()) {
-        std::cout << sf->operand_stack.top().class_name << " ";
-        sf->operand_stack.top().PrintValue();
-        std::cout << std::endl;
-        sf->operand_stack.pop();
-    }
-}
