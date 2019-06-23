@@ -19,11 +19,13 @@ class MethodExecuter {
     ConstantPool *cp;
     // Pair (classname, value)
     StackFrame *sf;
+    ClassMethods cm;
     std::stack<std::pair<std::string, int>> local_operand_stack;
 
   public:
-    MethodExecuter(std::vector<unsigned char> code, ConstantPool *cp);
-    ContextEntry Exec(std::vector<ContextEntry> ce);
+    MethodExecuter(ConstantPool *cp, ClassMethods cm);
+    ContextEntry Exec(std::vector<unsigned char> bytecode,
+                      std::vector<ContextEntry *> ce);
 };
 
 #endif
