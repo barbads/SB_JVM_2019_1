@@ -18,7 +18,7 @@ class ContextEntry {
     bool isNull;
     Type entry_type;
     std::string class_name;
-    std::vector<ContextEntry> l;
+    std::vector<ContextEntry *> l;
 
     bool isArray;
     union ContextEntryUnion {
@@ -62,7 +62,7 @@ class ContextEntry {
                 hasContext = true;
                 isArray    = false;
                 auto received_context =
-                    reinterpret_cast<std::vector<ContextEntry> *>(value);
+                    reinterpret_cast<std::vector<ContextEntry *> *>(value);
                 for (auto c : *received_context) {
                     l.push_back(c);
                 }
@@ -99,7 +99,7 @@ class ContextEntry {
         if (value != nullptr) {
             hasContext = true;
             auto received_context =
-                reinterpret_cast<std::vector<ContextEntry> *>(value);
+                reinterpret_cast<std::vector<ContextEntry *> *>(value);
             for (auto c : *received_context) {
                 l.push_back(c);
             }
@@ -110,7 +110,7 @@ class ContextEntry {
         if (hasContext) {
             for (auto entry : l) {
                 std::cout << "\n\tClass Name " << class_name << "\n\tValue:";
-                entry.PrintValue();
+                entry->PrintValue();
                 std::cout << std::endl;
             }
         }

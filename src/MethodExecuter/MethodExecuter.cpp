@@ -1072,7 +1072,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
-            std::vector<unsigned char> code(cm.at(index).attributes[0].code);
+            auto cm_index      = cp->getMethodNameIndex(index);
+            std::vector<unsigned char> code(cm.at(cm_index).attributes[0].code);
             Exec(code, sf->lva);
         } break;
         case 0x3b: // istore_0

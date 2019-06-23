@@ -25,6 +25,7 @@ class ConstantPool : FileReader {
     std::string getNameByIndex(int index);
     int getLineTableIndex();
     int getCodeIndex();
+    int getMethodNameIndex(int index);
     int cpCount();
 };
 
