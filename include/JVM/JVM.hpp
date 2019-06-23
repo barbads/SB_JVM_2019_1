@@ -14,11 +14,13 @@ class JVM {
     std::stack<StackFrame> stack_per_thread;
     ClassFile *class_loader;
     ClassFields convertFieldIntoMap(std::vector<FieldInfoCte>);
+    ClassMethods convertMethodIntoMap(std::vector<MethodInfoCte>);
 
   public:
     JVM(ClassFile *cl);
     void Run();
-    void executeByteCode(std::vector<unsigned char> code, ClassFields cf);
+    void executeByteCode(std::vector<unsigned char> code, ClassFields cf,
+                         ClassMethods cm);
 };
 
 #endif

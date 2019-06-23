@@ -4,6 +4,14 @@
 
 JVM::JVM(ClassFile *cl) { class_loader = cl; }
 
+ClassMethods JVM::convertMethodIntoMap(std::vector<MethodInfoCte> mi) {
+    ClassMethods cm;
+    for (auto m : mi) {
+        cm.insert(std::pair<int, MethodInfoCte>(m.name_index, m));
+    }
+    return cm;
+}
+
 ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
     ClassFields cf;
     for (auto f : fi) {
@@ -50,7 +58,8 @@ void JVM::Run() {
     MethodInfoCte main = class_loader->getMainMethod();
     auto field_vector  = *class_loader->getFields();
     auto field_map     = convertFieldIntoMap(field_vector);
-
+    auto method_vector = *class_loader->getMethods();
+    auto method_map    = convertMethodIntoMap(method_vector);
     if (main.attributes_count < 1) {
         throw std::out_of_range(
             "Method main must have only one code attribute, check .class file");
@@ -62,16 +71,18 @@ void JVM::Run() {
         return;
     }
     ContextEntry main_context;
-    std::vector<ContextEntry> context{main_context};
+    std::vector<ContextEntry *> context{&main_context};
     stack_per_thread.push(StackFrame(context));
 
     auto code = method_attribute_code.code;
-    executeByteCode(code, field_map);
+    executeByteCode(code, field_map, method_map);
 }
 
-void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields cf) {
-    auto context = stack_per_thread.top().lva;
-    context.push_back(ContextEntry(&cf, nullptr));
-    auto me = new MethodExecuter(code, class_loader->getCP());
-    me->Exec(context);
+void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields cf,
+                          ClassMethods cm) {
+    auto context  = &stack_per_thread.top().lva;
+    auto startlva = ContextEntry(&cf, nullptr);
+    context->push_back(&startlva);
+    auto me = new MethodExecuter(class_loader->getCP(), cm);
+    me->Exec(code, *context);
 }

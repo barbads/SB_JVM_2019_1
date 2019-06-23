@@ -28,13 +28,15 @@ class ClassFile : FileReader {
     std::string getMagicNumber();
     std::map<int, std::string> access_flag;
     int parseDescriptor(std::string desc);
+
   public:
     ClassFile(std::ifstream *file);
     void Parse();
     void Show();
     ConstantPool *getCP();
     MethodInfoCte getMainMethod();
-    std::vector<FieldInfoCte>* getFields();
+    std::vector<FieldInfoCte> *getFields();
+    std::vector<MethodInfoCte> *getMethods();
 };
 
 #endif

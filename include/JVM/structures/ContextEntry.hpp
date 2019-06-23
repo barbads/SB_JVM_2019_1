@@ -146,15 +146,9 @@ class ContextEntry {
         return true;
     }
 
-    std::vector<ContextEntry> getArray() {
+    std::vector<std::shared_ptr<ContextEntry>> getArray() {
         if (!isNull) {
-            auto array = std::vector<ContextEntry>(arrayRef.size());
-            for (auto i = 0; i < arrayRef.size(); i++) {
-                if (arrayRef[i] != nullptr) {
-                    array[i] = *arrayRef[i];
-                }
-            }
-            return array;
+            return arrayRef;
         }
         throw std::runtime_error("NullPointerException");
     }

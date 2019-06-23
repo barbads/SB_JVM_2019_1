@@ -9,9 +9,9 @@ struct StackFrame {
     // lva (local variable array)
     // in both cases bellow first pair element is value type and second is its
     // byte value
-    std::vector<ContextEntry> lva;
-    std::stack<ContextEntry> operand_stack;
-    StackFrame(std::vector<ContextEntry> localVariableArray) {
+    std::vector<ContextEntry *> lva;
+    std::stack<ContextEntry *> operand_stack;
+    StackFrame(std::vector<ContextEntry *> localVariableArray) {
         lva = localVariableArray;
     }
 };
