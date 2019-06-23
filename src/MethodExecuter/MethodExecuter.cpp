@@ -189,6 +189,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x30: // faload
         case 0x2e: // iaload
         case 0x2f: // laload
+        case 0x35: // saload
         {
             auto index = sf->operand_stack.top()->context_value.i;
             sf->operand_stack.pop();
@@ -206,6 +207,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x51: // fastore
         case 0x4f: // iastore
         case 0x50: // lastore
+        case 0x56: // sastore
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -336,6 +338,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0x18: // dload
+        case 0x16: // lload
         {
             int index        = -1;
             const int index1 = *(byte + 1);
@@ -367,6 +370,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x6b: // dmul
         case 0x6a: // fmul
         case 0x68: // imul
+        case 0x69: // lmul
         {
             auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -408,6 +412,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             return retval;
         } break;
         case 0x39: // dstore
+        case 0x37: // lstore
+
         {
             int index        = -1;
             const int index1 = *(byte + 1);
@@ -418,7 +424,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             } else {
                 index = index1;
             }
-            byte++;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
             sf->lva[index]     = value;
@@ -440,6 +445,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x66: // fsub
         case 0x67: // dsub
         case 0x64: // isub
+        case 0x65: // lsub
         {
             auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -631,7 +637,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x17: // fload
         case 0x15: // iload
-        case 0x16: // lload
         {
             int index        = -1;
             const int index1 = *(byte + 1);
@@ -684,9 +689,17 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x38: // fstore
         case 0x36: // istore
         {
+            int index        = -1;
+            const int index1 = *(byte + 1);
+            if (wide) {
+                const int index2 = *(byte + 2);
+                index            = index1 << 8 + index2;
+                byte++;
+            } else {
+                index = index1;
+            }
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto index     = *(++byte);
             sf->lva[index] = value;
 
         } break;
@@ -1002,7 +1015,9 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             break;
         case 0xb6: // invokevirtual
             break;
+
         case 0x80: // ior
+        case 0x81: // lor
         {
             auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -1029,6 +1044,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xac: // ireturn
+
         case 0x78: // ishl
         {
             auto value1 = *sf->operand_stack.top();
@@ -1081,6 +1097,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 new ContextEntry("", I, reinterpret_cast<void *>(&result)));
         } break;
         case 0x82: // ixor
+        case 0x83: // lxor
         {
             auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -1140,6 +1157,143 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x12: // ldc
         case 0x13: // ldc_w
         case 0x14: // ldc2_w
+
+        case 0x1e: // lload_0
+        case 0x1f: // lload_1
+        case 0x20: // lload_2
+        case 0x21: // lload_3
+        {
+            auto index = *(byte)-0x1e;
+            auto value = sf->lva.at(index);
+            sf->operand_stack.push(value);
+            sf->operand_stack.push(value);
+
+        } break;
+        case 0x75: // lneg
+        {
+            auto value = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            double j = -1;
+            auto result =
+                value * ContextEntry("", J, reinterpret_cast<void *>(&j));
+            sf->operand_stack.push(&result);
+        } break;
+        case 0xab: // lookupswitch
+        case 0x71: // irem
+        {
+            auto value1 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+
+            auto result = value1.context_value.i % value2.context_value.i;
+
+            if (result == 0) {
+                throw std::runtime_error("ArithmeticException");
+
+                sf->operand_stack.push(
+                    new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+            }
+        } break;
+        case 0xad: // lreturn
+
+        case 0x79: // lshl
+        {
+            auto value1 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int value2 = sf->operand_stack.top()->context_value.j & 0x1f;
+            sf->operand_stack.pop();
+
+            auto result = value1.context_value.j << value2;
+            sf->operand_stack.push(
+                new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+        } break;
+        case 0x7b: // lshr
+        {
+            auto value1 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int value2 = sf->operand_stack.top()->context_value.j & 0x1f;
+            sf->operand_stack.pop();
+            ContextEntry("", J, static_cast<void *>(&value1));
+            auto result = value1.context_value.j >> value2;
+            sf->operand_stack.push(
+                new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+        } break;
+        case 0x3f: // lstore_0
+        case 0x40: // lstore_1
+        case 0x41: // lstore_2
+        case 0x42: // lstore_3
+        {
+            auto index = *(byte)-0x3f;
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            sf->lva[index]     = value;
+            sf->lva[index + 1] = value;
+
+        } break;
+        case 0x7d: // lushr
+        {
+            auto value1 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = sf->operand_stack.top()->context_value.i & 0x3f;
+            sf->operand_stack.pop();
+
+            auto result = value1->context_value.i >> value2;
+            sf->operand_stack.push(
+                new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+        } break;
+        case 0xc2: // monitorenter
+        case 0xc3: // monitorexit
+
+        case 0xc5: // multianewarray
+
+        case 0xbc: // newarray
+
+        case 0x0: // nop
+            break;
+
+        case 0x57: // pop
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+        } break;
+        case 0x58: // pop2
+        {
+            if (category(sf->operand_stack.top()->entry_type) == 2) {
+                auto value = sf->operand_stack.top();
+                sf->operand_stack.pop();
+            } else if (category(sf->operand_stack.top()->entry_type) == 2) {
+                auto value1 = sf->operand_stack.top();
+                sf->operand_stack.pop();
+                auto value2 = sf->operand_stack.top()->context_value.i & 0x3f;
+                sf->operand_stack.pop();
+            }
+        } break;
+        case 0xb5: // putfield
+        case 0xb3: // putstatic
+
+        case 0xa9: // ret
+
+        case 0xb1: // return
+
+        case 0x11: // sipush
+
+        case 0x5f: // swap
+        {
+            if (category(sf->operand_stack.top()->entry_type) == 2) {
+                auto value1 = sf->operand_stack.top();
+                sf->operand_stack.pop();
+                auto value2 = sf->operand_stack.top();
+                sf->operand_stack.pop();
+                sf->operand_stack.push(value2);
+                sf->operand_stack.push(value1);
+            }
+        } break;
+        case 0xaa: // tableswitch
+        case 0xc4: // wide
+        {
+            wide = true;
+        } break;
         default:
             break;
         }
