@@ -376,7 +376,11 @@ int ConstantPool::getMethodNameIndex(int index) {
     auto name_ref = std::static_pointer_cast<NameAndType>(
         constant_pool[methref->name_type_index].second);
     if (methref->class_name == "java/lang/Object") {
-        return -1;
+        return -1; // Means the Executer will have to solve java/lang/object
+    }
+    if (methref->class_name == "java/io/PrintStream") {
+        return -2; // Means the Executer will have to solve
+                   // java/io/PrintStream
     }
     auto name_index = name_ref->name_index;
     return name_index;
@@ -528,5 +532,24 @@ DoubleLong ConstantPool::getNumberByIndex(int index) {
     } break;
     default:
         throw std::runtime_error("Requested index is not a double nor long");
+    }
+}
+
+std::string ConstantPool::getNameAndTypeByIndex(int index) {
+    if (index > constant_pool.size() - 1 || index == 0) {
+        char error[50];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%ld",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
+
+    if (constant_pool[index].first == 10) {
+        auto methref =
+            std::static_pointer_cast<Methodref>(constant_pool[index].second);
+        return methref->name_and_type;
+    } else {
+        throw std::runtime_error(
+            "Requested index is not a reference to a method");
     }
 }

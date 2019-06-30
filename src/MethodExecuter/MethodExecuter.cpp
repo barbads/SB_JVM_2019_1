@@ -1040,6 +1040,32 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int indexbyte1 = *(++byte);
             int indexbyte2 = *(++byte);
             auto index     = (indexbyte1 << 8) | indexbyte2;
+
+            auto value = cp->getMethodNameIndex(index);
+
+            if (value == -2) { // means cp(index) = java/io/PrintStream
+                auto name_and_type = cp->getNameAndTypeByIndex(index);
+                auto found         = name_and_type.find("println");
+                if (found != std::string::npos) {
+                    auto args =
+                        std::string(name_and_type.begin() +
+                                        name_and_type.find_first_of('(') + 1,
+                                    name_and_type.begin() +
+                                        name_and_type.find_first_of(')'));
+                    std::vector<std::shared_ptr<ContextEntry>> prints(
+                        args.size());
+                    for (auto &print : prints) {
+                        print = sf->operand_stack.top();
+                        sf->operand_stack.pop();
+                    }
+                    for (auto it = prints.end() - 1; it >= prints.begin();
+                         it--) {
+                        it->get()->PrintValue();
+                        std::cout << std::endl;
+                    }
+                }
+            }
+
         }
 
         break;
