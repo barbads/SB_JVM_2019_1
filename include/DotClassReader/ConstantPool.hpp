@@ -2,6 +2,7 @@
 #define _ConstantPool_H_
 
 #include <DotClassReader/FileReader.hpp>
+#include <JVM/structures/DoubleLong.hpp>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -27,7 +28,7 @@ class ConstantPool : FileReader {
     int getCodeIndex();
     int getMethodNameIndex(int index);
     int cpCount();
-    long getNumberByIndex(int index);
+    DoubleLong getNumberByIndex(int index);
 };
 
 #endif

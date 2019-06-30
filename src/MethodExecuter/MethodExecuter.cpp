@@ -2,13 +2,14 @@
 #include <MethodExecuter/MethodExecuter.hpp>
 #include <math.h>
 
-MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods cm) {
+MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm) {
     this->cp = cp;
     this->cm = cm;
 }
 
-ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
-                                  std::vector<ContextEntry *> ce) {
+ContextEntry
+MethodExecuter::Exec(std::vector<unsigned char> bytecode,
+                     std::vector<std::shared_ptr<ContextEntry>> ce) {
     sf = new StackFrame(ce);
     std::vector<int> args;
     int args_counter = 0;
@@ -25,7 +26,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 if (index >= arrayRef.size()) {
                     throw std::runtime_error("ArrayIndexOutOfBoundsException");
                 }
-                sf->operand_stack.push(arrayRef.at(index).get());
+                sf->operand_stack.push(arrayRef.at(index));
             } else {
                 throw std::runtime_error(
                     "Stack operand is not an array reference");
@@ -35,7 +36,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = sf->operand_stack.top();
             std::shared_ptr<ContextEntry> value_ref(
-                new ContextEntry(std::move(*value)));
+                std::shared_ptr<ContextEntry>(
+                    new ContextEntry(std::move(*value))));
             sf->operand_stack.pop();
             auto index = sf->operand_stack.top()->context_value.i;
             sf->operand_stack.pop();
@@ -48,8 +50,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x01: // aconst_null
         {
-            auto nil = ContextEntry();
-            sf->operand_stack.push(&nil);
+            sf->operand_stack.push(
+                std::shared_ptr<ContextEntry>(new ContextEntry()));
         } break;
         case 0x19: // aload
         {
@@ -102,8 +104,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("NegativeArraySizeException");
             }
             // do we need to save this into a heap? Idk
-            auto ref = ContextEntry(L, count);
-            sf->operand_stack.push(&ref);
+            sf->operand_stack.push(
+                std::shared_ptr<ContextEntry>(new ContextEntry(L, count)));
         } break;
         case 0xb0: // areturn
         {
@@ -125,8 +127,10 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     "arraylength called over a non-reference object");
             }
 
-            auto length = arrRef->arrayLength();
-            sf->operand_stack.push(&length);
+            auto length     = arrRef->arrayLength();
+            auto length_ptr = std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(length)));
+            sf->operand_stack.push(length_ptr);
         } break;
         case 0x3a: // astore
         {
@@ -176,7 +180,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                                  static_cast<int>(*(byte + 2));
             std::string className = cp->getNameByIndex(classNameIndex);
             auto cevoid           = reinterpret_cast<void *>(&sf->lva);
-            auto entry            = new ContextEntry(className, L, cevoid);
+            auto entry            = std::shared_ptr<ContextEntry>(
+                new ContextEntry(className, L, cevoid));
             sf->operand_stack.push(entry);
             byte += 2;
         } break;
@@ -201,7 +206,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (arrayref.size() >= index)
                 throw std::runtime_error("ArrayIndexOutOfBoundsException");
             auto value = arrayref.at(index);
-            sf->operand_stack.push(value.get());
+            sf->operand_stack.push(value);
         } break;
         case 0x54: // bastore
         case 0x55: // castore
@@ -219,22 +224,21 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
 
             std::shared_ptr<ContextEntry> value_ref(
-                new ContextEntry(std::move(*value)));
+                std::shared_ptr<ContextEntry>(
+                    new ContextEntry(std::move(*value))));
             arrayref[index] = value_ref;
             if (arrayref.size() >= index)
                 throw std::runtime_error("ArrayIndexOutOfBoundsException");
-            auto nvalue = arrayref.at(index).get();
+            auto nvalue = arrayref.at(index);
             sf->operand_stack.push(nvalue);
         } break;
         case 0x10: // bipush
         {
             auto value = *(byte + 1);
             byte++;
-            auto entry = ContextEntry("", B, reinterpret_cast<void *>(&value));
-            sf->operand_stack.push(&entry);
-
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", B, reinterpret_cast<void *>(&value))));
         } break;
-
         case 0xc0: // checkcast
         {
             auto indexbyte1    = *(++byte);
@@ -285,7 +289,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
             auto result = value1 + value2;
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0x98: // dcmp<op> dcmpg
         case 0x97: // dcmp<op> dcmpl
@@ -295,33 +300,34 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
+            auto entry = std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                entry.context_value.i = 1;
-                sf->operand_stack.push(&entry);
+                entry->context_value.i = 1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d < value2->context_value.d) {
-                entry.context_value.i = -1;
-                sf->operand_stack.push(&entry);
+                entry->context_value.i = -1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d == value2->context_value.d) {
-                entry.context_value.i = 0;
-                sf->operand_stack.push(&entry);
+                entry->context_value.i = 0;
+                sf->operand_stack.push(entry);
             } else if (isnan(value1->context_value.d) ||
                        isnan(value2->context_value.d)) {
                 if (*byte == 0x98) {
-                    entry.context_value.i = 1;
-                    sf->operand_stack.push(&entry);
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
                 } else if (*byte == 0x97) {
-                    entry.context_value.i = -1;
-                    sf->operand_stack.push(&entry);
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
                 }
             }
         } break;
         case 0xe: // dconst_<d> dconst_0
         case 0xf: // dconst_<d> dconst_1
         {
-            char e     = *byte - 0xe;
-            auto entry = ContextEntry("", D, reinterpret_cast<void *>(&e));
-            sf->operand_stack.push(&entry);
+            char e = *byte - 0xe;
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", D, reinterpret_cast<void *>(&e))));
 
         } break;
         case 0x6f: // ddiv
@@ -336,7 +342,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("ArithmeticException");
             } else {
                 auto result = value1 / value2;
-                sf->operand_stack.push(&result);
+                sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                    new ContextEntry(std::move(result))));
             }
         } break;
         case 0x18: // dload
@@ -354,8 +361,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             byte++;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
-            sf->operand_stack.push(value);
-
         } break;
         case 0x26: // dload_0
         case 0x27: // dload_1
@@ -365,10 +370,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x26;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
-            sf->operand_stack.push(value);
-
         } break;
-
         case 0x6b: // dmul
         case 0x6a: // fmul
         case 0x68: // imul
@@ -379,7 +381,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
             auto result = value1 * value2;
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         }
         case 0x77: // dneg
         {
@@ -388,7 +391,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             double d = -1;
             auto result =
                 value * ContextEntry("", D, reinterpret_cast<void *>(&d));
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0x73: // drem
         {
@@ -400,8 +404,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto result =
                 fmod(value1->context_value.d, value2->context_value.d);
 
-            sf->operand_stack.push(
-                new ContextEntry("", D, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", D, reinterpret_cast<void *>(&result))));
         } break;
         case 0xaf: // dreturn
         case 0xae: // freturn
@@ -439,8 +443,23 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x47;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index]     = value;
-            sf->lva[index + 1] = value;
+
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else if (index > sf->lva.size()) {
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            } else {
+                sf->lva.erase(sf->lva.begin() + index);
+                sf->lva.insert(sf->lva.begin() + index, value);
+            }
+            if ((index + 1) == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else if ((index + 1) > sf->lva.size()) {
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            } else {
+                sf->lva.erase(sf->lva.begin() + index);
+                sf->lva.insert(sf->lva.begin() + index, value);
+            }
 
         } break;
 
@@ -454,7 +473,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
             ContextEntry result = value1 - value2;
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0x5a: // dup_x1
         {
@@ -608,24 +628,25 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
+            auto entry = std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                entry.context_value.i = 1;
-                sf->operand_stack.push(&entry);
+                entry->context_value.i = 1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d < value2->context_value.d) {
-                entry.context_value.i = -1;
-                sf->operand_stack.push(&entry);
+                entry->context_value.i = -1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d == value2->context_value.d) {
-                entry.context_value.i = 0;
-                sf->operand_stack.push(&entry);
+                entry->context_value.i = 0;
+                sf->operand_stack.push(entry);
             } else if (isnan(value1->context_value.d) ||
                        isnan(value2->context_value.d)) {
                 if (*byte == 0x96) {
-                    entry.context_value.i = 1;
-                    sf->operand_stack.push(&entry);
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
                 } else if (*byte == 0x95) {
-                    entry.context_value.i = -1;
-                    sf->operand_stack.push(&entry);
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
                 }
             }
         } break;
@@ -634,7 +655,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xd: // fconst_2
         {
             char e     = *byte - 0xb;
-            auto entry = new ContextEntry("", F, reinterpret_cast<void *>(&e));
+            auto entry = std::shared_ptr<ContextEntry>(
+                new ContextEntry("", F, reinterpret_cast<void *>(&e)));
             sf->operand_stack.push(entry);
         } break;
         case 0x17: // fload
@@ -662,7 +684,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x22;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
-
         } break;
         case 0x76: // fneg
         {
@@ -671,7 +692,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             float f = -1;
             auto result =
                 value * ContextEntry("", F, reinterpret_cast<void *>(&f));
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
 
         } break;
         case 0x72: // frem
@@ -684,9 +706,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto result =
                 fmod(value1->context_value.f, value2->context_value.f);
 
-            sf->operand_stack.push(
-                new ContextEntry("", F, reinterpret_cast<void *>(&result)));
-
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", F, reinterpret_cast<void *>(&result))));
         } break;
         case 0x38: // fstore
         case 0x36: // istore
@@ -703,7 +724,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
             sf->lva[index] = value;
-
         } break;
         case 0x43: // fstore_0
         case 0x44: // fstore_1
@@ -714,9 +734,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
             sf->lva[index] = value;
-
         } break;
-
         case 0xb4: // getfield
         {
             auto indexbyte1 = *(++byte);
@@ -727,11 +745,13 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (objref->isNull)
                 throw std::runtime_error("NullPointerException");
             auto value = objref->cf->at(index);
-            sf->operand_stack.push(value.get());
+            sf->operand_stack.push(value);
         } break;
         case 0xb2: // getstatic
         {
-            // precisamos de teste pra fazer esse nao entendi 😬
+            auto indexbyte1 = *(++byte);
+            auto indexbyte2 = *(++byte);
+            auto index      = (indexbyte1 << 8) | indexbyte2;
         } break;
         case 0xa7: // goto
         {
@@ -741,7 +761,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto offset = (branchbyte1 << 8) | branchbyte2;
 
             byte += offset;
-
         } break;
         case 0xc8: // goto_w
         {
@@ -778,7 +797,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
             auto result = value1 & value2;
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0x2: // iconst_m1
         case 0x3: // iconst_0
@@ -788,12 +808,10 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x7: // iconst_4
         case 0x8: // iconst_5
         {
-            char e     = *byte - 0x3;
-            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&e));
-            sf->operand_stack.push(&entry);
-
+            char e = *byte - 0x3;
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&e))));
         } break;
-
         case 0x6c: // idiv
         {
             auto value1 = *sf->operand_stack.top();
@@ -804,10 +822,10 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("ArithmeticException");
             } else {
                 auto value3 = value1 / value2;
-                sf->operand_stack.push(&value3);
+                sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                    new ContextEntry(std::move(value3))));
             }
         } break;
-
         case 0xa5: // if_acmpeq
         case 0xa6: // if_acmpne
         {
@@ -883,7 +901,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 }
             }
         } break;
-
         case 0x99: // ifeq
         case 0x9a: // ifne
         case 0x9b: // iflt
@@ -977,15 +994,17 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             if (objref->isNull) {
                 // push 0 into the stack
-                sf->operand_stack.push(
-                    new ContextEntry("", I, reinterpret_cast<void *>(&zero)));
+                sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                    new ContextEntry("", I, reinterpret_cast<void *>(&zero))));
             } else {
                 if (objref->class_name == cp->getNameByIndex(index)) {
-                    sf->operand_stack.push(new ContextEntry(
-                        "", I, reinterpret_cast<void *>(&one)));
+                    sf->operand_stack.push(
+                        std::shared_ptr<ContextEntry>(new ContextEntry(
+                            "", I, reinterpret_cast<void *>(&one))));
                 } else {
-                    sf->operand_stack.push(new ContextEntry(
-                        "", I, reinterpret_cast<void *>(&zero)));
+                    sf->operand_stack.push(
+                        std::shared_ptr<ContextEntry>(new ContextEntry(
+                            "", I, reinterpret_cast<void *>(&zero))));
                 }
             }
         } break;
@@ -1007,7 +1026,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int i = -1;
             auto result =
                 *value * ContextEntry("", I, reinterpret_cast<void *>(&i));
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0xba: // invokedynamic
             break;
@@ -1016,7 +1036,13 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xb8: // invokestatic
             break;
         case 0xb6: // invokevirtual
-            break;
+        {
+            int indexbyte1 = *(++byte);
+            int indexbyte2 = *(++byte);
+            auto index     = (indexbyte1 << 8) | indexbyte2;
+        }
+
+        break;
 
         case 0x80: // ior
         case 0x81: // lor
@@ -1026,7 +1052,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
             auto result = value1 || value2;
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
 
         } break;
         case 0x70: // irem
@@ -1042,7 +1069,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("ArithmeticException");
 
                 sf->operand_stack.push(
-                    new ContextEntry("", I, reinterpret_cast<void *>(&result)));
+                    std::shared_ptr<ContextEntry>(new ContextEntry(
+                        "", I, reinterpret_cast<void *>(&result))));
             }
         } break;
         case 0xac: // ireturn
@@ -1055,8 +1083,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
 
             auto result = value1.context_value.i << value2;
-            sf->operand_stack.push(
-                new ContextEntry("", I, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
         case 0x7a: // ishr
         {
@@ -1066,8 +1094,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             ContextEntry("", I, static_cast<void *>(&value1));
             auto result = value1.context_value.i >> value2;
-            sf->operand_stack.push(
-                new ContextEntry("", I, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
         case 0xb7: // invokespecial
         {
@@ -1078,7 +1106,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto cm_index      = cp->getMethodNameIndex(index);
             if (cm_index != -1) {
                 std::vector<unsigned char> code(
-                    cm.at(cm_index).attributes[0].code);
+                    cm->at(cm_index).attributes[0].code);
                 Exec(code, sf->lva);
             }
         } break;
@@ -1100,8 +1128,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
 
             auto result = value1->context_value.i >> value2;
-            sf->operand_stack.push(
-                new ContextEntry("", I, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
         case 0x82: // ixor
         case 0x83: // lxor
@@ -1111,7 +1139,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
             auto result = value1 ^ value2;
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0xa8: // jsr
         {
@@ -1145,32 +1174,37 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
             if (value1->context_value.j > value2->context_value.j) {
                 entry.context_value.i = 1;
-                sf->operand_stack.push(&entry);
+                sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                    new ContextEntry("", I, reinterpret_cast<void *>(&i))));
             } else if (value1->context_value.j < value2->context_value.j) {
                 entry.context_value.i = -1;
-                sf->operand_stack.push(&entry);
+                sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                    new ContextEntry("", I, reinterpret_cast<void *>(&i))));
             } else if (value1->context_value.j == value2->context_value.j) {
                 entry.context_value.i = 0;
-                sf->operand_stack.push(&entry);
+                sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                    new ContextEntry("", I, reinterpret_cast<void *>(&i))));
             }
         } break;
         case 0x9: // lconst_0
         case 0xa: // lconst_1
         {
-            char e     = *byte - 0x9;
-            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&e));
-            sf->operand_stack.push(&entry);
+            char e = *byte - 0x9;
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&e))));
+
         } break;
         case 0x12: // ldc
         case 0x13: // ldc_w
             break;
         case 0x14: // ldc2_w
         {
-            auto index1 = *(++byte);
-            auto index2 = *(++byte);
-            auto index  = (index1 << 8) | index2;
-            long val    = cp->getNumberByIndex(index);
-            auto cte = new ContextEntry("", J, reinterpret_cast<void *>(val));
+            auto index1   = *(++byte);
+            auto index2   = *(++byte);
+            auto index    = (index1 << 8) | index2;
+            DoubleLong dl = cp->getNumberByIndex(index);
+            auto cte      = std::shared_ptr<ContextEntry>(
+                new ContextEntry("", dl.t, reinterpret_cast<void *>(&dl.val)));
             sf->operand_stack.push(cte);
         } break;
         case 0x1e: // lload_0
@@ -1191,7 +1225,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             double j = -1;
             auto result =
                 value * ContextEntry("", J, reinterpret_cast<void *>(&j));
-            sf->operand_stack.push(&result);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
         } break;
         case 0xab: // lookupswitch
         case 0x71: // irem
@@ -1207,7 +1242,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 throw std::runtime_error("ArithmeticException");
 
                 sf->operand_stack.push(
-                    new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+                    std::shared_ptr<ContextEntry>(new ContextEntry(
+                        "", J, reinterpret_cast<void *>(&result))));
             }
         } break;
         case 0xad: // lreturn
@@ -1220,8 +1256,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
 
             auto result = value1.context_value.j << value2;
-            sf->operand_stack.push(
-                new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", J, reinterpret_cast<void *>(&result))));
         } break;
         case 0x7b: // lshr
         {
@@ -1231,8 +1267,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             ContextEntry("", J, static_cast<void *>(&value1));
             auto result = value1.context_value.j >> value2;
-            sf->operand_stack.push(
-                new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", J, reinterpret_cast<void *>(&result))));
         } break;
         case 0x3f: // lstore_0
         case 0x40: // lstore_1
@@ -1254,8 +1290,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
 
             auto result = value1->context_value.i >> value2;
-            sf->operand_stack.push(
-                new ContextEntry("", J, reinterpret_cast<void *>(&result)));
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", J, reinterpret_cast<void *>(&result))));
         } break;
         case 0xc2: // monitorenter
         case 0xc3: // monitorexit
@@ -1291,7 +1327,10 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xa9: // ret
             break;
         case 0xb1: // return
-            break;
+        {
+            while (!sf->operand_stack.empty())
+                sf->operand_stack.pop();
+        } break;
         case 0x11: // sipush
             break;
         case 0x5f: // swap
@@ -1315,11 +1354,6 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             break;
         }
     }
-    std::cout << "operand stack" << std::endl;
-    while (not sf->operand_stack.empty()) {
-        std::cout << sf->operand_stack.top()->class_name << " ";
-        sf->operand_stack.top()->PrintValue();
-        std::cout << std::endl;
-        sf->operand_stack.pop();
-    }
+
+    return ContextEntry();
 }

@@ -6,6 +6,7 @@
 #include <JVM/structures/FieldMap.hpp>
 #include <JVM/structures/StackFrame.hpp>
 
+#include <memory>
 #include <stack>
 #include <string>
 #include <vector>
@@ -19,13 +20,13 @@ class MethodExecuter {
     ConstantPool *cp;
     // Pair (classname, value)
     StackFrame *sf;
-    ClassMethods cm;
+    ClassMethods *cm;
     std::stack<std::pair<std::string, int>> local_operand_stack;
 
   public:
-    MethodExecuter(ConstantPool *cp, ClassMethods cm);
+    MethodExecuter(ConstantPool *cp, ClassMethods *cm);
     ContextEntry Exec(std::vector<unsigned char> bytecode,
-                      std::vector<ContextEntry *> ce);
+                      std::vector<std::shared_ptr<ContextEntry>> ce);
 };
 
 #endif

@@ -19,8 +19,8 @@ class JVM {
   public:
     JVM(ClassFile *cl);
     void Run();
-    void executeByteCode(std::vector<unsigned char> code, ClassFields cf,
-                         ClassMethods cm);
+    void executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
+                         ClassMethods *cm);
 };
 
 #endif

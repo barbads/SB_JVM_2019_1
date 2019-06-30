@@ -18,7 +18,9 @@ class ContextEntry {
     bool isNull;
     Type entry_type;
     std::string class_name;
-    std::vector<ContextEntry *> l;
+    std::vector<std::shared_ptr<ContextEntry>> l;
+
+    ~ContextEntry() {}
 
     bool isArray;
     union ContextEntryUnion {
@@ -28,11 +30,13 @@ class ContextEntry {
         double d;
         float f;
         long j;
+
         short s;
         bool z;
     } context_value;
 
     ContextEntry(std::string className, Type entryType, void *value) {
+        l                = std::vector<std::shared_ptr<ContextEntry>>();
         this->class_name = className;
         this->entry_type = entryType;
         isArray          = false;
@@ -62,7 +66,7 @@ class ContextEntry {
                 hasContext = true;
                 isArray    = false;
                 auto received_context =
-                    reinterpret_cast<std::vector<ContextEntry *> *>(value);
+                    (std::vector<std::shared_ptr<ContextEntry>> *)(value);
                 for (auto c : *received_context) {
                     l.push_back(c);
                 }
@@ -80,26 +84,33 @@ class ContextEntry {
         entry_type = entryType;
         isArray    = true;
         hasContext = false;
+        l          = std::vector<std::shared_ptr<ContextEntry>>();
         arrayRef   = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
         for (auto &ref : arrayRef) {
             ref = nullptr;
         }
     }
 
-    ContextEntry() { isNull = true; }
+    ContextEntry() {
+        isNull = true;
+        l      = std::vector<std::shared_ptr<ContextEntry>>();
+    }
 
     ContextEntry(std::map<int, std::shared_ptr<ContextEntry>> *cf,
                  void *value) {
         // case an objectref has fields
         isNull     = false;
-        hasContext = false;
+        hasContext = true;
         isArray    = false;
         entry_type = L;
-        this->cf   = cf;
+        if (cf != nullptr) {
+            this->cf = cf;
+        }
+        l = std::vector<std::shared_ptr<ContextEntry>>();
         if (value != nullptr) {
             hasContext = true;
             auto received_context =
-                reinterpret_cast<std::vector<ContextEntry *> *>(value);
+                (std::vector<std::shared_ptr<ContextEntry>> *)(value);
             for (auto c : *received_context) {
                 l.push_back(c);
             }

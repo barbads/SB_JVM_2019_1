@@ -499,7 +499,7 @@ int ConstantPool::getCodeIndex() {
 
 int ConstantPool::cpCount() { return pool_size; }
 
-long ConstantPool::getNumberByIndex(int index) {
+DoubleLong ConstantPool::getNumberByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];
         sprintf(error,
@@ -512,13 +512,19 @@ long ConstantPool::getNumberByIndex(int index) {
         auto number =
             std::static_pointer_cast<Double>(constant_pool[index].second)
                 ->getValue();
-        return static_cast<long>(number);
+        DoubleLong dl;
+        dl.t     = D;
+        dl.val.d = number;
+        return dl;
     } break;
     case 5: {
         auto number =
             std::static_pointer_cast<Long>(constant_pool[index].second)
                 ->getValue();
-        return number;
+        DoubleLong dl;
+        dl.t     = J;
+        dl.val.d = number;
+        return dl;
     } break;
     default:
         throw std::runtime_error("Requested index is not a double nor long");

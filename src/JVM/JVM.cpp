@@ -70,19 +70,19 @@ void JVM::Run() {
         std::cout << "No code to be executed" << std::endl;
         return;
     }
-    ContextEntry main_context;
-    std::vector<ContextEntry *> context{&main_context};
+    std::shared_ptr<ContextEntry> main_context(new ContextEntry());
+    std::vector<std::shared_ptr<ContextEntry>> context{main_context};
     stack_per_thread.push(StackFrame(context));
 
     auto code = method_attribute_code.code;
-    executeByteCode(code, field_map, method_map);
+    executeByteCode(code, &field_map, &method_map);
 }
 
-void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields cf,
-                          ClassMethods cm) {
-    auto context  = &stack_per_thread.top().lva;
-    auto startlva = ContextEntry(&cf, nullptr);
-    context->push_back(&startlva);
+void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
+                          ClassMethods *cm) {
+    auto context = &stack_per_thread.top().lva;
+    std::shared_ptr<ContextEntry> startlva(new ContextEntry(cf, nullptr));
+    context->push_back(startlva);
     auto me = new MethodExecuter(class_loader->getCP(), cm);
     me->Exec(code, *context);
 }
