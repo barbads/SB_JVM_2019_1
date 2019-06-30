@@ -16,7 +16,7 @@ int main(int argc, char const *argv[]) {
     } else if (argc == 2) {
         file = ifstream(argv[1], ios::binary);
     }
-    auto cf = ClassFile(&file);
+    auto cf = ClassFile(&file, argv[1]);
     cf.Parse();
     // If you want to show class info, just uncomment the line bellow
     cf.Show();

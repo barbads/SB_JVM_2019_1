@@ -1,10 +1,11 @@
 
 #include <DotClassReader/ClassFile.hpp>
 
-ClassFile::ClassFile(std::ifstream *file) {
-    this->file  = file;
-    this->cp    = new ConstantPool(this->file);
-    access_flag = std::map<int, std::string>{
+ClassFile::ClassFile(std::ifstream *file, char const *fileName) {
+    this->file     = file;
+    this->cp       = new ConstantPool(this->file);
+    this->fileName = fileName;
+    access_flag    = std::map<int, std::string>{
         {0x01, "acc_public"},  {0x02, "acc_private"},
         {0x21, "public"},      {0x4, "acc_protected"},
         {0x08, "acc_static"},  {0x09, "public static"},
@@ -39,6 +40,11 @@ void ClassFile::Parse() {
     access_flags = getInfo(file, 2);
     this_class   = getInfo(file, 2);
     super_class  = getInfo(file, 2);
+
+    if ((cp->getNameByIndex(this_class) + ".class") != (this->fileName)) {
+        throw std::range_error("Invalid .class file, "
+                               "file name is not the same as this class");
+    }
 
     itf = new Interface(file);
     itf->seek();

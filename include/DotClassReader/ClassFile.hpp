@@ -27,10 +27,11 @@ class ClassFile : FileReader {
     Attributes *attr;
     std::string getMagicNumber();
     std::map<int, std::string> access_flag;
+    std::string fileName;
     int parseDescriptor(std::string desc);
 
   public:
-    ClassFile(std::ifstream *file);
+    ClassFile(std::ifstream *file, char const *fileName);
     void Parse();
     void Show();
     ConstantPool *getCP();
