@@ -533,11 +533,12 @@ DoubleLong ConstantPool::getNumberByIndex(int index) {
     default:
         throw std::runtime_error("Requested index is not a double nor long");
     }
+    return DoubleLong{};
 }
 
 std::string ConstantPool::getNameAndTypeByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
-        char error[50];
+        char error[80];
         sprintf(error,
                 "Requested index %d is out of range, allowed range: 1-%ld",
                 index, constant_pool.size() - 1);
@@ -552,4 +553,45 @@ std::string ConstantPool::getNameAndTypeByIndex(int index) {
         throw std::runtime_error(
             "Requested index is not a reference to a method");
     }
+    return "";
+}
+
+IntFloatReference ConstantPool::getValueByIndex(int index) {
+    if (index > constant_pool.size() - 1 || index == 0) {
+        char error[80];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%ld",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
+
+    switch (constant_pool[index].first) {
+    case 3: {
+        auto intref =
+            std::static_pointer_cast<Integer>(constant_pool[index].second);
+        IntFloatReference ifr;
+        ifr.t     = I;
+        ifr.val.i = intref->value;
+        return ifr;
+    } break;
+    case 4: {
+        auto floatref =
+            std::static_pointer_cast<Float>(constant_pool[index].second);
+        IntFloatReference ifr;
+        ifr.t     = F;
+        ifr.val.f = floatref->value;
+        return ifr;
+    }
+    case 8: {
+        auto strref =
+            std::static_pointer_cast<String>(constant_pool[index].second);
+        IntFloatReference ifr{.t = R};
+        ifr.str_value = strref->string;
+        return ifr;
+    } break;
+    default:
+        throw std::runtime_error(
+            "Requested index is neither a int nor float nor string");
+    }
+    return IntFloatReference{};
 }

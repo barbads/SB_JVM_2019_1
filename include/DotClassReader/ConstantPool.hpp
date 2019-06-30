@@ -3,6 +3,7 @@
 
 #include <DotClassReader/FileReader.hpp>
 #include <JVM/structures/DoubleLong.hpp>
+#include <JVM/structures/IntFloatReference.hpp>
 #include <fstream>
 #include <iostream>
 #include <memory>
@@ -29,6 +30,7 @@ class ConstantPool : FileReader {
     int getMethodNameIndex(int index);
     int cpCount();
     DoubleLong getNumberByIndex(int index);
+    IntFloatReference getValueByIndex(int index);
     std::string getNameAndTypeByIndex(int index);
 };
 

@@ -11,6 +11,7 @@ class ContextEntry {
   private:
     bool hasContext;
     std::string field_name;
+    std::string string_instance;
 
   public:
     std::map<int, std::shared_ptr<ContextEntry>> *cf;
@@ -74,6 +75,10 @@ class ContextEntry {
                 isNull = true;
             }
             break;
+        case R:
+            class_name      = "Ljava/lang/String";
+            string_instance = *reinterpret_cast<std::string *>(value);
+            break;
         default:
             throw std::runtime_error("This type is not recognized");
             break;
@@ -123,6 +128,11 @@ class ContextEntry {
                 std::cout << "\n\tClass Name " << class_name << "\n\tValue:";
                 entry->PrintValue();
                 std::cout << std::endl;
+            }
+        } else {
+            if (class_name == "Ljava/lang/String") {
+                std::cout << string_instance;
+                return;
             }
         }
         switch (entry_type) {
@@ -227,6 +237,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     ContextEntry operator/(const ContextEntry b) const {
@@ -264,6 +275,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     ContextEntry operator&(const ContextEntry b) const {
@@ -291,6 +303,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     ContextEntry operator||(const ContextEntry b) const {
@@ -318,6 +331,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     ContextEntry operator^(const ContextEntry b) const {
@@ -345,6 +359,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     ContextEntry operator*(const ContextEntry b) const {
@@ -382,6 +397,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     ContextEntry operator-(const ContextEntry b) const {
@@ -422,6 +438,7 @@ class ContextEntry {
         default:
             break;
         }
+        return ContextEntry();
     }
 
     bool operator==(const ContextEntry b) const {
@@ -456,6 +473,7 @@ class ContextEntry {
             }
             break;
         }
+        return false;
     }
 };
 

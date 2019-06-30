@@ -47,7 +47,8 @@
     "cstring": "cpp",
     "functional": "cpp",
     "map": "cpp",
-    "iomanip": "cpp"
+    "iomanip": "cpp",
+    "string": "cpp"
   },
   "editor.formatOnSave": true,
   "C_Cpp.formatting": "Default",

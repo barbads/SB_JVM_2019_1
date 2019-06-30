@@ -22,6 +22,7 @@ class MethodExecuter {
     StackFrame *sf;
     ClassMethods *cm;
     std::stack<std::pair<std::string, int>> local_operand_stack;
+    unsigned int countArgs(std::string);
 
   public:
     MethodExecuter(ConstantPool *cp, ClassMethods *cm);

@@ -77,7 +77,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x2c: // aload_2
         case 0x2d: // aload_3
         {
-            std::cout << "ENTROU NO ALOAD_0 com byte = " << *byte << std::endl;
             int index = *byte - 0x2a;
             auto load = sf->lva.at(index);
             if (load->isReference()) {
@@ -1052,8 +1051,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                                         name_and_type.find_first_of('(') + 1,
                                     name_and_type.begin() +
                                         name_and_type.find_first_of(')'));
+                    auto args_size = countArgs(args);
                     std::vector<std::shared_ptr<ContextEntry>> prints(
-                        args.size());
+                        args_size);
                     for (auto &print : prints) {
                         print = sf->operand_stack.top();
                         sf->operand_stack.pop();
@@ -1064,12 +1064,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                         std::cout << std::endl;
                     }
                 }
+            } else {
+                std::vector<unsigned char> code(
+                    cm->at(value).attributes[0].code);
+                Exec(code, sf->lva);
             }
-
-        }
-
-        break;
-
+        } break;
         case 0x80: // ior
         case 0x81: // lor
         {
@@ -1125,7 +1125,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xb7: // invokespecial
         {
-
+            auto old_os        = sf->operand_stack;
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
@@ -1135,6 +1135,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     cm->at(cm_index).attributes[0].code);
                 Exec(code, sf->lva);
             }
+            sf->operand_stack = old_os;
         } break;
         case 0x3b: // istore_0
         case 0x3c: // istore_1
@@ -1227,6 +1228,20 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
         } break;
         case 0x12: // ldc
+        {
+            auto index       = *(++byte);
+            auto intfloatref = cp->getValueByIndex(index);
+            std::shared_ptr<ContextEntry> ce;
+            if (intfloatref.t == R) {
+                ce = std::shared_ptr<ContextEntry>(new ContextEntry(
+                    "", R, reinterpret_cast<void *>(&intfloatref.str_value)));
+            } else {
+                ce = std::shared_ptr<ContextEntry>(new ContextEntry(
+                    "", intfloatref.t,
+                    reinterpret_cast<void *>(&intfloatref.val)));
+            }
+            sf->operand_stack.push(ce);
+        } break;
         case 0x13: // ldc_w
             break;
         case 0x14: // ldc2_w
@@ -1388,4 +1403,31 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
     }
 
     return ContextEntry();
+}
+
+unsigned int MethodExecuter::countArgs(std::string argument_str) {
+    unsigned int args_number = 0;
+    for (auto arg = argument_str.begin(); arg < argument_str.end(); arg++) {
+        switch (*arg) {
+        case 'B':
+        case 'C':
+        case 'D':
+        case 'F':
+        case 'I':
+        case 'J':
+        case 'S':
+        case 'Z':
+            args_number++;
+            break;
+        case 'L': {
+            auto end_arg_pos = argument_str.find_first_of(
+                ";", std::distance(argument_str.begin(), arg));
+            args_number++;
+            arg += end_arg_pos;
+        } break;
+        default:
+            break;
+        }
+    }
+    return args_number;
 }
