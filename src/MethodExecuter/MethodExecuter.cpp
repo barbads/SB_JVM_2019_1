@@ -166,6 +166,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             if (index == sf->lva.size()) {
                 sf->lva.push_back(objRef);
+            } else {
+                sf->lva[index] = objRef;
             }
         } break;
         case 0xbf: // athrow
