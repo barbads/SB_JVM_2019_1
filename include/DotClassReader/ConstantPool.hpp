@@ -27,6 +27,7 @@ class ConstantPool : FileReader {
     int getCodeIndex();
     int getMethodNameIndex(int index);
     int cpCount();
+    long getNumberByIndex(int index);
 };
 
 #endif

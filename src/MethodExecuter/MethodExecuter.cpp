@@ -1,3 +1,4 @@
+#include <JVM/structures/FieldMap.hpp>
 #include <MethodExecuter/MethodExecuter.hpp>
 #include <math.h>
 
@@ -74,6 +75,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x2c: // aload_2
         case 0x2d: // aload_3
         {
+            std::cout << "ENTROU NO ALOAD_0 com byte = " << *byte << std::endl;
             int index = *byte - 0x2a;
             auto load = sf->lva.at(index);
             if (load->isReference()) {
@@ -1163,7 +1165,14 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x13: // ldc_w
             break;
         case 0x14: // ldc2_w
-            break;
+        {
+            auto index1 = *(++byte);
+            auto index2 = *(++byte);
+            auto index  = (index1 << 8) | index2;
+            long val    = cp->getNumberByIndex(index);
+            auto cte = new ContextEntry("", J, reinterpret_cast<void *>(val));
+            sf->operand_stack.push(cte);
+        } break;
         case 0x1e: // lload_0
         case 0x1f: // lload_1
         case 0x20: // lload_2
