@@ -164,7 +164,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (!objRef->isReference()) {
                 std::runtime_error("astore called over a non-reference object");
             }
-            sf->lva[index] = objRef;
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(objRef);
+            }
         } break;
         case 0xbf: // athrow
         {

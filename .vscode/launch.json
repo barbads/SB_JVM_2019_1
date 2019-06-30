@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceRoot}/sb-2019",
-      "args": ["FooCorporation.class"],
+      "args": ["A6.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
