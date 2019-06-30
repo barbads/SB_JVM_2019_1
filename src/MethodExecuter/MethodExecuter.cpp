@@ -1170,25 +1170,31 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xa8: // jsr
         {
-            // auto branchbyte1 = *(++byte);
-            // auto branchbyte2 = *(++byte);
+            int index = (++byte) - bytecode.begin();
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(index))));
+            auto branchbyte1 = *(++byte);
+            auto branchbyte2 = *(++byte);
 
-            // auto offset = (branchbyte1 << 8) | branchbyte2;
+            auto offset = (branchbyte1 << 8) | branchbyte2;
 
-            // byte += offset;
+            byte += offset;
 
         } break;
         case 0xc9: // jsr_w
         {
-            // auto branchbyte1 = *(++byte);
-            // auto branchbyte2 = *(++byte);
-            // auto branchbyte3 = *(++byte);
-            // auto branchbyte4 = *(++byte);
+            int index = (++byte) - bytecode.begin();
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(index))));
+            auto branchbyte1 = *(++byte);
+            auto branchbyte2 = *(++byte);
+            auto branchbyte3 = *(++byte);
+            auto branchbyte4 = *(++byte);
 
-            // auto offset = (branchbyte1 << 24) | (branchbyte2 << 16) |
-            //               (branchbyte3 << 8) | branchbyte4;
+            auto offset = (branchbyte1 << 24) | (branchbyte2 << 16) |
+                          (branchbyte3 << 8) | branchbyte4;
 
-            // byte += offset;
+            byte += offset;
         } break;
         case 0x94: // lcmp
         {
