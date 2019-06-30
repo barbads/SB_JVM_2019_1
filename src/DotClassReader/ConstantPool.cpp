@@ -495,3 +495,29 @@ int ConstantPool::getCodeIndex() {
 }
 
 int ConstantPool::cpCount() { return pool_size; }
+
+long ConstantPool::getNumberByIndex(int index) {
+    if (index > constant_pool.size() - 1 || index == 0) {
+        char error[50];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%ld",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
+    switch (constant_pool[index].first) {
+    case 6: {
+        auto number =
+            std::static_pointer_cast<Double>(constant_pool[index].second)
+                ->getValue();
+        return static_cast<long>(number);
+    } break;
+    case 5: {
+        auto number =
+            std::static_pointer_cast<Long>(constant_pool[index].second)
+                ->getValue();
+        return number;
+    } break;
+    default:
+        throw std::runtime_error("Requested index is not a double nor long");
+    }
+}
