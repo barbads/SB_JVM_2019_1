@@ -375,6 +375,9 @@ int ConstantPool::getMethodNameIndex(int index) {
         std::static_pointer_cast<Methodref>(constant_pool[index].second);
     auto name_ref = std::static_pointer_cast<NameAndType>(
         constant_pool[methref->name_type_index].second);
+    if (methref->class_name == "java/lang/Object") {
+        return -1;
+    }
     auto name_index = name_ref->name_index;
     return name_index;
 }

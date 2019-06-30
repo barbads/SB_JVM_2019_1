@@ -174,8 +174,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                                  static_cast<int>(*(byte + 2));
             std::string className = cp->getNameByIndex(classNameIndex);
             auto cevoid           = reinterpret_cast<void *>(&sf->lva);
-            auto entry            = ContextEntry(className, L, cevoid);
-            sf->operand_stack.push(&entry);
+            auto entry            = new ContextEntry(className, L, cevoid);
+            sf->operand_stack.push(entry);
             byte += 2;
         } break;
         case 0x59: // dup
@@ -632,8 +632,8 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xd: // fconst_2
         {
             char e     = *byte - 0xb;
-            auto entry = ContextEntry("", F, reinterpret_cast<void *>(&e));
-            sf->operand_stack.push(&entry);
+            auto entry = new ContextEntry("", F, reinterpret_cast<void *>(&e));
+            sf->operand_stack.push(entry);
         } break;
         case 0x17: // fload
         case 0x15: // iload
@@ -1069,12 +1069,16 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xb7: // invokespecial
         {
+
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
             auto cm_index      = cp->getMethodNameIndex(index);
-            std::vector<unsigned char> code(cm.at(cm_index).attributes[0].code);
-            Exec(code, sf->lva);
+            if (cm_index != -1) {
+                std::vector<unsigned char> code(
+                    cm.at(cm_index).attributes[0].code);
+                Exec(code, sf->lva);
+            }
         } break;
         case 0x3b: // istore_0
         case 0x3c: // istore_1
@@ -1157,8 +1161,9 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x12: // ldc
         case 0x13: // ldc_w
+            break;
         case 0x14: // ldc2_w
-
+            break;
         case 0x1e: // lload_0
         case 0x1f: // lload_1
         case 0x20: // lload_2
@@ -1271,14 +1276,15 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xb5: // putfield
+            break;
         case 0xb3: // putstatic
-
+            break;
         case 0xa9: // ret
-
+            break;
         case 0xb1: // return
-
+            break;
         case 0x11: // sipush
-
+            break;
         case 0x5f: // swap
         {
             if (category(sf->operand_stack.top()->entry_type) == 2) {
@@ -1291,6 +1297,7 @@ ContextEntry MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xaa: // tableswitch
+            break;
         case 0xc4: // wide
         {
             wide = true;
