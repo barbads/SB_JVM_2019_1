@@ -383,7 +383,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto result = value1 * value2;
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry(std::move(result))));
-        }
+        } break;
         case 0x77: // dneg
         {
             auto value = *sf->operand_stack.top();
