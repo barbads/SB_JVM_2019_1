@@ -6,6 +6,6 @@
 #include <map>
 #include <string>
 
-typedef std::map<int, std::shared_ptr<ContextEntry>> ClassFields;
+typedef std::map<std::string, std::shared_ptr<ContextEntry>> ClassFields;
 typedef std::map<int, MethodInfoCte> ClassMethods;
 #endif

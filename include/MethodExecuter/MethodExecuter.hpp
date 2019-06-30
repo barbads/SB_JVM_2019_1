@@ -21,13 +21,15 @@ class MethodExecuter {
     // Pair (classname, value)
     StackFrame *sf;
     ClassMethods *cm;
+    ClassFields *cf;
     std::stack<std::pair<std::string, int>> local_operand_stack;
     unsigned int countArgs(std::string);
 
   public:
-    MethodExecuter(ConstantPool *cp, ClassMethods *cm);
-    ContextEntry Exec(std::vector<unsigned char> bytecode,
-                      std::vector<std::shared_ptr<ContextEntry>> ce);
+    MethodExecuter(ConstantPool *cp, ClassMethods *cm, ClassFields *cf);
+    std::shared_ptr<ContextEntry>
+    Exec(std::vector<unsigned char> bytecode,
+         std::vector<std::shared_ptr<ContextEntry>> *ce);
 };
 
 #endif

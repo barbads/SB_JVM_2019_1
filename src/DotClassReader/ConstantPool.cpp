@@ -595,3 +595,21 @@ IntFloatReference ConstantPool::getValueByIndex(int index) {
     }
     return IntFloatReference{};
 }
+
+std::string ConstantPool::getFieldByIndex(int index) {
+    if (index > constant_pool.size() - 1 || index == 0) {
+        char error[80];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%ld",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
+    if (constant_pool[index].first != 9) {
+        throw std::runtime_error("index is not a FieldRef");
+    }
+    auto fieldRef =
+        std::static_pointer_cast<Fieldref>(constant_pool[index].second);
+    auto name_and_type = std::static_pointer_cast<NameAndType>(
+        constant_pool[fieldRef->name_type_index].second);
+    return name_and_type->name;
+}

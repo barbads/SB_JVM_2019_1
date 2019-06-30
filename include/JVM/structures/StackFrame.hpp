@@ -11,8 +11,8 @@ struct StackFrame {
     // byte value
     std::vector<std::shared_ptr<ContextEntry>> lva;
     std::stack<std::shared_ptr<ContextEntry>> operand_stack;
-    StackFrame(std::vector<std::shared_ptr<ContextEntry>> localVariableArray) {
-        lva = localVariableArray;
+    StackFrame(std::vector<std::shared_ptr<ContextEntry>> *localVariableArray) {
+        lva = *localVariableArray;
     }
 };
 

@@ -16,9 +16,9 @@ ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
     ClassFields cf;
     for (auto f : fi) {
         if (f.descriptor.length() == 1) {
-            int zero         = 0;
-            auto zeroref     = reinterpret_cast<void *>(&zero);
-            cf[f.name_index] = std::make_unique<ContextEntry>(
+            int zero     = 0;
+            auto zeroref = reinterpret_cast<void *>(&zero);
+            cf[f.name]   = std::make_unique<ContextEntry>(
                 "", TypeMap.at(f.descriptor), zeroref);
         } else {
             int dimension = 0;
@@ -44,10 +44,9 @@ ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
                     array_operator = std::move(array_operator->arrayRef[0]);
                 }
                 break;
-                cf[f.name_index] = init;
+                cf[f.name] = init;
             } else {
-                cf[f.name_index] =
-                    std::make_shared<ContextEntry>("", L, nullptr);
+                cf[f.name] = std::make_shared<ContextEntry>("", L, nullptr);
             }
         }
     }
@@ -72,7 +71,7 @@ void JVM::Run() {
     }
     std::shared_ptr<ContextEntry> main_context(new ContextEntry());
     std::vector<std::shared_ptr<ContextEntry>> context{main_context};
-    stack_per_thread.push(StackFrame(context));
+    stack_per_thread.push(StackFrame(&context));
 
     auto code = method_attribute_code.code;
     executeByteCode(code, &field_map, &method_map);
@@ -81,8 +80,6 @@ void JVM::Run() {
 void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
                           ClassMethods *cm) {
     auto context = &stack_per_thread.top().lva;
-    std::shared_ptr<ContextEntry> startlva(new ContextEntry(cf, nullptr));
-    context->push_back(startlva);
-    auto me = new MethodExecuter(class_loader->getCP(), cm);
-    me->Exec(code, *context);
+    auto me      = new MethodExecuter(class_loader->getCP(), cm, cf);
+    me->Exec(code, context);
 }

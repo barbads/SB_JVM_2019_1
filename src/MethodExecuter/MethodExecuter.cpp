@@ -2,14 +2,16 @@
 #include <MethodExecuter/MethodExecuter.hpp>
 #include <math.h>
 
-MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm) {
+MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm,
+                               ClassFields *cf) {
     this->cp = cp;
     this->cm = cm;
+    this->cf = cf;
 }
 
-ContextEntry
+std::shared_ptr<ContextEntry>
 MethodExecuter::Exec(std::vector<unsigned char> bytecode,
-                     std::vector<std::shared_ptr<ContextEntry>> ce) {
+                     std::vector<std::shared_ptr<ContextEntry>> *ce) {
     sf = new StackFrame(ce);
     std::vector<int> args;
     int args_counter = 0;
@@ -87,7 +89,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xbd: // anewarray
         {
-            int count = sf->operand_stack.top()->context_value.i;
+            int count = sf->operand_stack.top()->context_value.b;
             sf->operand_stack.pop();
             int index        = -1;
             const int index1 = *(byte + 1);
@@ -115,7 +117,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (!retval->isReference())
                 throw std::runtime_error(
                     "areturn cannot return a non-reference value");
-            return *retval;
+            return retval;
         } break;
         case 0xbe: // arraylength
         {
@@ -233,8 +235,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x10: // bipush
         {
-            auto value = *(byte + 1);
-            byte++;
+            auto value = *(++byte);
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", B, reinterpret_cast<void *>(&value))));
         } break;
@@ -410,7 +411,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xae: // freturn
 
         {
-            auto retval = *sf->operand_stack.top();
+            auto retval = sf->operand_stack.top();
             while (!sf->operand_stack.empty()) {
                 sf->operand_stack.pop();
             }
@@ -743,8 +744,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             if (objref->isNull)
                 throw std::runtime_error("NullPointerException");
-            auto value = objref->cf->at(index);
-            sf->operand_stack.push(value);
+            // auto value = cf->at(index);
+            // sf->operand_stack.push(value);
         } break;
         case 0xb2: // getstatic
         {
@@ -1067,7 +1068,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             } else {
                 std::vector<unsigned char> code(
                     cm->at(value).attributes[0].code);
-                Exec(code, sf->lva);
+                auto exec_return = Exec(code, &sf->lva);
+                if (exec_return != nullptr) {
+                    sf->operand_stack.push(exec_return);
+                }
             }
         } break;
         case 0x80: // ior
@@ -1133,7 +1137,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (cm_index != -1) {
                 std::vector<unsigned char> code(
                     cm->at(cm_index).attributes[0].code);
-                Exec(code, sf->lva);
+                auto exec_return = Exec(code, &sf->lva);
+                if (exec_return != nullptr) {
+                    sf->operand_stack.push(exec_return);
+                }
             }
             sf->operand_stack = old_os;
         } break;
@@ -1368,7 +1375,15 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xb5: // putfield
-            break;
+        {
+            auto indexbyte1 = *(++byte);
+            auto indexbyte2 = *(++byte);
+            auto index      = (indexbyte1 << 8) | indexbyte2;
+            auto field_name = cp->getFieldByIndex(index);
+            auto value      = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            cf->operator[](field_name) = value;
+        } break;
         case 0xb3: // putstatic
             break;
         case 0xa9: // ret
@@ -1402,7 +1417,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         }
     }
 
-    return ContextEntry();
+    return nullptr;
 }
 
 unsigned int MethodExecuter::countArgs(std::string argument_str) {

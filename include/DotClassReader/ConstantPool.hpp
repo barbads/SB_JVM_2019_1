@@ -32,6 +32,7 @@ class ConstantPool : FileReader {
     DoubleLong getNumberByIndex(int index);
     IntFloatReference getValueByIndex(int index);
     std::string getNameAndTypeByIndex(int index);
+    std::string getFieldByIndex(int index);
 };
 
 #endif
