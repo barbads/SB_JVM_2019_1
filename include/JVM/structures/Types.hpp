@@ -17,6 +17,10 @@ int static category(Type t) {
     return 1;
 }
 
+static const std::map<int, Type> ATypeMap = std::map<int, Type>{
+    {4, B}, {5, C}, {6, F}, {7, D}, {8, B}, {9, S}, {10, I}, {11, J},
+};
+
 /*B = byte
   C = char
   D = double

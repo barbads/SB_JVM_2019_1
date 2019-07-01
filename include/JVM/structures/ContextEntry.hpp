@@ -167,9 +167,9 @@ class ContextEntry {
         return true;
     }
 
-    std::vector<std::shared_ptr<ContextEntry>> getArray() {
+    std::vector<std::shared_ptr<ContextEntry>> *getArray() {
         if (!isNull) {
-            return arrayRef;
+            return &arrayRef;
         }
         throw std::runtime_error("NullPointerException");
     }

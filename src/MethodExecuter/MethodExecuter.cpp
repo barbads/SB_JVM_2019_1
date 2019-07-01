@@ -16,7 +16,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
     std::vector<int> args;
     int args_counter = 0;
     bool wide        = false;
-    for (auto byte = bytecode.begin(); byte != bytecode.end(); byte++) {
+    int i            = 0;
+    for (auto byte = bytecode.begin(); byte < bytecode.end(); byte++) {
+        i = byte - bytecode.begin();
         switch (*byte) {
         case 0x32: // aaload
         {
@@ -25,10 +27,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (sf->operand_stack.top()->isArray) {
                 auto arrayRef = sf->operand_stack.top()->getArray();
                 sf->operand_stack.pop();
-                if (index >= arrayRef.size()) {
+                if (index >= arrayRef->size()) {
                     throw std::runtime_error("ArrayIndexOutOfBoundsException");
                 }
-                sf->operand_stack.push(arrayRef.at(index));
+                sf->operand_stack.push(arrayRef->at(index));
             } else {
                 throw std::runtime_error(
                     "Stack operand is not an array reference");
@@ -151,7 +153,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 std::runtime_error("astore called over a non-reference object");
             }
             // return address type??
-            sf->lva[index] = objRef;
+            if (index > sf->lva.size()) {
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            }
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(objRef);
+            } else {
+                sf->lva[index] = objRef;
+            }
         } break;
         case 0x4b: // astore_0
         case 0x4c: // astore_1
@@ -203,14 +212,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x2f: // laload
         case 0x35: // saload
         {
-            auto index = sf->operand_stack.top()->context_value.i;
+            auto index = sf->operand_stack.top()->context_value.b;
             sf->operand_stack.pop();
             auto arrayref = sf->operand_stack.top()->getArray();
             sf->operand_stack.pop();
 
-            if (arrayref.size() >= index)
+            if (index >= arrayref->size())
                 throw std::runtime_error("ArrayIndexOutOfBoundsException");
-            auto value = arrayref.at(index);
+            auto value = arrayref->at(index);
             sf->operand_stack.push(value);
         } break;
         case 0x54: // bastore
@@ -223,7 +232,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto index = sf->operand_stack.top()->context_value.i;
+            auto index = sf->operand_stack.top()->context_value.b;
             sf->operand_stack.pop();
             auto arrayref = sf->operand_stack.top()->getArray();
             sf->operand_stack.pop();
@@ -231,11 +240,13 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             std::shared_ptr<ContextEntry> value_ref(
                 std::shared_ptr<ContextEntry>(
                     new ContextEntry(std::move(*value))));
-            arrayref[index] = value_ref;
-            if (arrayref.size() >= index)
+            if (index > arrayref->size())
                 throw std::runtime_error("ArrayIndexOutOfBoundsException");
-            auto nvalue = arrayref.at(index);
-            sf->operand_stack.push(nvalue);
+            if (index == arrayref->size())
+                arrayref->push_back(value_ref);
+            else {
+                arrayref->operator[](index) = value_ref;
+            }
         } break;
         case 0x10: // bipush
         {
@@ -521,8 +532,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             } else {
                 auto value2 = sf->operand_stack.top();
                 sf->operand_stack.pop();
+                sf->operand_stack.push(value2);
                 sf->operand_stack.push(value1);
                 sf->operand_stack.push(value2);
+                sf->operand_stack.push(value1);
             }
         } break;
         case 0x5d: // dup2_x1
@@ -667,15 +680,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x15: // iload
         {
             int index        = -1;
-            const int index1 = *(byte + 1);
+            const int index1 = *(++byte);
             if (wide) {
-                const int index2 = *(byte + 2);
+                const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
                 byte++;
             } else {
                 index = index1;
             }
-            byte++;
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
 
@@ -727,7 +739,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index] = value;
+            if (index > sf->lva.size()) {
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            }
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index] = value;
+            }
         } break;
         case 0x43: // fstore_0
         case 0x44: // fstore_1
@@ -759,12 +778,13 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xa7: // goto
         {
-            auto branchbyte1 = *(++byte);
-            auto branchbyte2 = *(++byte);
+            unsigned short int branchbyte1 = *(byte + 1);
+            unsigned short int branchbyte2 = *(byte + 2);
 
-            auto offset = (branchbyte1 << 8) | branchbyte2;
-
+            int offset = (signed int)(branchbyte1 << 8) | branchbyte2;
+            offset -= (1 << 16); // 2 complement (java 😡)
             byte += offset;
+            byte--;
         } break;
         case 0xc8: // goto_w
         {
@@ -866,44 +886,42 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value2 = sf->operand_stack.top();
             sf->operand_stack.pop();
 
-            auto branchbyte1 = *(++byte);
-            auto branchbyte2 = *(++byte);
-
+            auto branchbyte1 = *(byte + 1);
+            auto branchbyte2 = *(byte + 2);
+            int offset       = 0;
             if (index == 0) {
                 if (value1->context_value.i == value2->context_value.i) {
-                    auto offset = (branchbyte1 << 8) | branchbyte2;
-                    byte += offset;
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte--;
                 }
             } else if (index == 1) {
                 if (value1->context_value.i != value2->context_value.i) {
-                    auto offset = (branchbyte1 << 8) | branchbyte2;
-                    byte += offset;
-                } else if (index == 2) {
-                    if (value1->context_value.i < value2->context_value.i) {
-                        auto offset = (branchbyte1 << 8) | branchbyte2;
-                        byte += offset;
-                    } else if (index == 3) {
-                        if (value1->context_value.i <=
-                            value2->context_value.i) {
-                            auto offset = (branchbyte1 << 8) | branchbyte2;
-                            byte += offset;
-                        } else if (index == 4) {
-                            if (value1->context_value.i >
-                                value2->context_value.i) {
-                                auto offset = (branchbyte1 << 8) | branchbyte2;
-                                byte += offset;
-                            } else if (index == 5) {
-                                if (value1->context_value.i >=
-                                    value2->context_value.i) {
-                                    auto offset =
-                                        (branchbyte1 << 8) | branchbyte2;
-                                    byte += offset;
-                                }
-                            }
-                        }
-                    }
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte--;
+                }
+            } else if (index == 2) {
+                if (value1->context_value.i < value2->context_value.i) {
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte--;
+                }
+            } else if (index == 3) {
+                if (value1->context_value.i <= value2->context_value.i) {
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte--;
+                }
+            } else if (index == 4) {
+                if (value1->context_value.i > value2->context_value.i) {
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte--;
+                }
+            } else if (index == 5) {
+                if (value1->context_value.i >= value2->context_value.i) {
+                    offset = (branchbyte1 << 8) | branchbyte2;
+                    byte--;
                 }
             }
+            byte += offset;
+
         } break;
         case 0x99: // ifeq
         case 0x9a: // ifne
@@ -1353,11 +1371,18 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xc2: // monitorenter
         case 0xc3: // monitorexit
-
+            break;
         case 0xc5: // multianewarray
-
+            break;
         case 0xbc: // newarray
-
+        {
+            auto atype = static_cast<int>(*(++byte));
+            auto count = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            std::shared_ptr<ContextEntry> ce(
+                new ContextEntry(ATypeMap.at(atype), count->context_value.b));
+            sf->operand_stack.push(ce);
+        } break;
         case 0x0: // nop
             break;
 
@@ -1398,7 +1423,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 sf->operand_stack.pop();
         } break;
         case 0x11: // sipush
-            break;
+        {
+            auto byte1  = *(++byte);
+            auto byte2  = *(++byte);
+            auto short_ = (byte1 << 8) | byte2;
+            std::shared_ptr<ContextEntry> ce(
+                new ContextEntry("", I, reinterpret_cast<void *>(&short_)));
+            sf->operand_stack.push(ce);
+        } break;
         case 0x5f: // swap
         {
             if (category(sf->operand_stack.top()->entry_type) == 2) {
