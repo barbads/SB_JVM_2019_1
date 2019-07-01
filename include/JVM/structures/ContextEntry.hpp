@@ -89,6 +89,7 @@ class ContextEntry {
         entry_type = entryType;
         isArray    = true;
         hasContext = false;
+        isNull     = false;
         l          = std::vector<std::shared_ptr<ContextEntry>>();
         arrayRef   = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
         for (auto &ref : arrayRef) {

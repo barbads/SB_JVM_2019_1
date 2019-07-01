@@ -60,29 +60,27 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x19: // aload
         {
             int index        = -1;
-            const int index1 = *(byte + 1);
+            const int index1 = *(++byte);
             if (wide) {
-                const int index2 = *(byte + 2);
+                const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
-                byte++;
             } else {
                 index = index1;
             }
-            byte++;
             auto load = sf->lva.at(index);
             if (load->isReference()) {
                 sf->operand_stack.push(load);
             } else {
                 throw std::runtime_error("aload of non-reference object");
             }
-        }
+        } break;
         case 0x2a: // aload_0
         case 0x2b: // aload_1
         case 0x2c: // aload_2
         case 0x2d: // aload_3
         {
-            int index = *byte - 0x2a;
-            auto load = sf->lva.at(index);
+            auto index = *byte - 0x2a;
+            auto load  = sf->lva.at(index);
             if (load->isReference()) {
                 sf->operand_stack.push(load);
             } else {
@@ -216,8 +214,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             auto arrayref = sf->operand_stack.top()->getArray();
             sf->operand_stack.pop();
-
-            if (index >= arrayref->size())
+            auto arrayrefv = *arrayref;
+            if (index >= arrayrefv.size())
                 throw std::runtime_error("ArrayIndexOutOfBoundsException");
             auto value = arrayref->at(index);
             sf->operand_stack.push(value);
@@ -684,7 +682,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (wide) {
                 const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
-                byte++;
             } else {
                 index = index1;
             }
@@ -729,11 +726,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x36: // istore
         {
             int index        = -1;
-            const int index1 = *(byte + 1);
+            const int index1 = *(++byte);
             if (wide) {
-                const int index2 = *(byte + 2);
+                const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
-                byte++;
             } else {
                 index = index1;
             }
@@ -890,36 +886,38 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto branchbyte2 = *(byte + 2);
             int offset       = 0;
             if (index == 0) {
-                if (value1->context_value.i == value2->context_value.i) {
+                if (value1->context_value.b == value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
             } else if (index == 1) {
-                if (value1->context_value.i != value2->context_value.i) {
+                if (value1->context_value.b != value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
             } else if (index == 2) {
-                if (value1->context_value.i < value2->context_value.i) {
+                if (value1->context_value.b < value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
             } else if (index == 3) {
-                if (value1->context_value.i <= value2->context_value.i) {
+                if (value1->context_value.b <= value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
             } else if (index == 4) {
-                if (value1->context_value.i > value2->context_value.i) {
+                if (value1->context_value.b > value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
             } else if (index == 5) {
-                if (value1->context_value.i >= value2->context_value.i) {
+                if (value1->context_value.b >= value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
             }
+            if (!offset)
+                byte += 2;
             byte += offset;
 
         } break;
@@ -1077,13 +1075,17 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto args_size = countArgs(args);
                     std::vector<std::shared_ptr<ContextEntry>> prints(
                         args_size);
-                    for (auto &print : prints) {
-                        print = sf->operand_stack.top();
-                        sf->operand_stack.pop();
-                    }
-                    for (auto it = prints.end() - 1; it >= prints.begin();
-                         it--) {
-                        it->get()->PrintValue();
+                    if (args_size > 0) {
+                        for (auto &print : prints) {
+                            print = sf->operand_stack.top();
+                            sf->operand_stack.pop();
+                        }
+                        for (auto it = prints.end() - 1; it >= prints.begin();
+                             it--) {
+                            it->get()->PrintValue();
+                            std::cout << std::endl;
+                        }
+                    } else {
                         std::cout << std::endl;
                     }
                 }
