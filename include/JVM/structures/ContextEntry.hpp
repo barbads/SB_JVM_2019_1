@@ -141,7 +141,7 @@ class ContextEntry {
             std::cout << context_value.b;
             break;
         case I:
-            std::cout << context_value.i;
+            std::cout << static_cast<int>(context_value.i);
             break;
         case D:
             std::cout << context_value.d;

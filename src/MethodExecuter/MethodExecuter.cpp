@@ -250,7 +250,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = *(++byte);
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
-                new ContextEntry("", B, reinterpret_cast<void *>(&value))));
+                new ContextEntry("", I, reinterpret_cast<void *>(&value))));
         } break;
         case 0xc0: // checkcast
         {
@@ -669,7 +669,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xc: // fconst_1
         case 0xd: // fconst_2
         {
-            char e     = *byte - 0xb;
+            float e    = static_cast<float>(static_cast<int>(*byte - 0xb));
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", F, reinterpret_cast<void *>(&e)));
             sf->operand_stack.push(entry);
