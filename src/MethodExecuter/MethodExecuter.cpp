@@ -1390,15 +1390,17 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
         case 0x57: // pop
         {
-            auto value = sf->operand_stack.top();
-            sf->operand_stack.pop();
+            if (category(sf->operand_stack.top()->entry_type) == 1) {
+                auto value = sf->operand_stack.top();
+                sf->operand_stack.pop();
+            }
         } break;
         case 0x58: // pop2
         {
             if (category(sf->operand_stack.top()->entry_type) == 2) {
                 auto value = sf->operand_stack.top();
                 sf->operand_stack.pop();
-            } else if (category(sf->operand_stack.top()->entry_type) == 2) {
+            } else if (category(sf->operand_stack.top()->entry_type) == 1) {
                 auto value1 = sf->operand_stack.top();
                 sf->operand_stack.pop();
                 auto value2 = sf->operand_stack.top()->context_value.i & 0x3f;
