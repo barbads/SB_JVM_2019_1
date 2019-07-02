@@ -1435,13 +1435,13 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x5f: // swap
         {
-            if (category(sf->operand_stack.top()->entry_type) == 2) {
+            if (category(sf->operand_stack.top()->entry_type) == 1) {
                 auto value1 = sf->operand_stack.top();
                 sf->operand_stack.pop();
                 auto value2 = sf->operand_stack.top();
                 sf->operand_stack.pop();
-                sf->operand_stack.push(value2);
                 sf->operand_stack.push(value1);
+                sf->operand_stack.push(value2);
             }
         } break;
         case 0xaa: // tableswitch
