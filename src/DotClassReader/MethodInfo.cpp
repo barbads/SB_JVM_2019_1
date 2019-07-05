@@ -158,6 +158,51 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 ss << " ";
             ss << instruction_list[byte_code];
             switch (byte_code) {
+            case 0xaa: {
+                int instruction_line = j;
+                while (static_cast<unsigned int>(attr.code[j+1]) == 0) { // removes padding bytes
+                    j++;
+                }
+                auto byte4 = static_cast<int>(attr.code[j+1]);
+                j++;
+                auto byte3 = static_cast<int>(attr.code[j+1]);
+                j++;
+                auto byte2 = static_cast<int>(attr.code[j+1]);
+                j++;
+                auto byte1 = static_cast<int>(attr.code[j+1]);
+                j++;
+                auto default_ =static_cast<signed int>((byte1<<24)|(byte2<<16)|(byte3<<8)|byte4);
+                j++;
+
+                auto bytee1 = static_cast<unsigned int>(attr.code[j+1]);
+                j++;
+                auto bytee2 = static_cast<unsigned int>(attr.code[j+1]);
+                j++;
+                auto bytee3 = static_cast<unsigned int>(attr.code[j+1]);
+                j++;
+                auto bytee4 = static_cast<signed int>(attr.code[j+1]);
+                j++;
+                auto indeex = static_cast<signed int>((bytee1<<24)|(bytee2<<16)|(bytee3<<8)|bytee4);
+
+                ss << " 1 to " << indeex << std::endl;
+
+                int k=1;
+                while (k<=indeex) { 
+                    auto highbyte1 = static_cast<unsigned int>(attr.code[j+1]);
+                    j++;
+                    auto highbyte2 = static_cast<unsigned int>(attr.code[j+1]);
+                    j++;
+                    auto highbyte3 = static_cast<unsigned int>(attr.code[j+1]);
+                    j++;
+                    auto highbyte4 = static_cast<signed int>(attr.code[j+1]);
+                    j++;
+                    auto indeeex = static_cast<signed int>((highbyte1<<24)|(highbyte2<<16)|(highbyte3<<8)|highbyte4);
+                    ss << "             " << k << ": " << instruction_line+indeeex << " (+" << indeeex << ")" << std::endl; 
+                    k++;
+                }
+                ss << "             " << "default: " << instruction_line+default_ << " (+" << default_ << ")"<< std::endl;
+                break;
+            }
             case 0x18:
             case 0x39:
             case 0x17:

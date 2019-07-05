@@ -1176,6 +1176,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x3b;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            }
             sf->lva[index] = value;
         } break;
         case 0x7c: // iushr
@@ -1446,8 +1449,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 sf->operand_stack.push(value2);
             }
         } break;
-        case 0xaa: // tableswitch
+        case 0xaa: { // tableswitch
+            auto index1 = sf->operand_stack.top();
+            auto index = static_cast<signed int>(index1->context_value.b);
+            std::cout << "index do tableswitch: " << index << std::endl;
             break;
+        }
         case 0xc4: // wide
         {
             wide = true;
