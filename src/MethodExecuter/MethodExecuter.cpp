@@ -1309,7 +1309,22 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(ce);
         } break;
         case 0x13: // ldc_w
-            break;
+        {
+            auto branchbyte1 = *(++byte);
+            auto branchbyte2 = *(++byte);
+            auto index       = (branchbyte1 << 8) | branchbyte2;
+            auto intfloatref = cp->getValueByIndex(index);
+            std::shared_ptr<ContextEntry> ce;
+            if (intfloatref.t == R) {
+                ce = std::shared_ptr<ContextEntry>(new ContextEntry(
+                    "", R, reinterpret_cast<void *>(&intfloatref.str_value)));
+            } else {
+                ce = std::shared_ptr<ContextEntry>(new ContextEntry(
+                    "", intfloatref.t,
+                    reinterpret_cast<void *>(&intfloatref.val)));
+            }
+            sf->operand_stack.push(ce);
+        } break;
         case 0x14: // ldc2_w
         {
             auto index1   = *(++byte);
@@ -1408,7 +1423,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xc3: // monitorexit
             break;
         case 0xc5: // multianewarray
-            break;
+        {
+
+        } break;
         case 0xbc: // newarray
         {
             auto atype = static_cast<int>(*(++byte));
@@ -1423,15 +1440,17 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
         case 0x57: // pop
         {
-            auto value = sf->operand_stack.top();
-            sf->operand_stack.pop();
+            if (category(sf->operand_stack.top()->entry_type) == 1) {
+                auto value = sf->operand_stack.top();
+                sf->operand_stack.pop();
+            }
         } break;
         case 0x58: // pop2
         {
             if (category(sf->operand_stack.top()->entry_type) == 2) {
                 auto value = sf->operand_stack.top();
                 sf->operand_stack.pop();
-            } else if (category(sf->operand_stack.top()->entry_type) == 2) {
+            } else if (category(sf->operand_stack.top()->entry_type) == 1) {
                 auto value1 = sf->operand_stack.top();
                 sf->operand_stack.pop();
                 auto value2 = sf->operand_stack.top()->context_value.i & 0x3f;
@@ -1489,13 +1508,13 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x5f: // swap
         {
-            if (category(sf->operand_stack.top()->entry_type) == 2) {
+            if (category(sf->operand_stack.top()->entry_type) == 1) {
                 auto value1 = sf->operand_stack.top();
                 sf->operand_stack.pop();
                 auto value2 = sf->operand_stack.top();
                 sf->operand_stack.pop();
-                sf->operand_stack.push(value2);
                 sf->operand_stack.push(value1);
+                sf->operand_stack.push(value2);
             }
         } break;
         case 0xaa: // tableswitch
