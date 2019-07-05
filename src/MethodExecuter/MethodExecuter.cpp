@@ -1,12 +1,15 @@
 #include <JVM/structures/FieldMap.hpp>
 #include <MethodExecuter/MethodExecuter.hpp>
+#include <algorithm>
 #include <math.h>
 
 MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm,
-                               ClassFields *cf) {
-    this->cp = cp;
-    this->cm = cm;
-    this->cf = cf;
+                               ClassFields *cf,
+                               std::function<int(std::string)> getArgsLen) {
+    this->cp         = cp;
+    this->cm         = cm;
+    this->cf         = cf;
+    this->getArgsLen = getArgsLen;
 }
 
 std::shared_ptr<ContextEntry>
@@ -68,10 +71,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 index = index1;
             }
             auto load = sf->lva.at(index);
-            if (load->isReference()) {
+            if (load->isReference() && !load->isReturnAddress()) {
                 sf->operand_stack.push(load);
             } else {
-                throw std::runtime_error("aload of non-reference object");
+                throw std::runtime_error("aload of non-reference object or "
+                                         "load on a return address");
             }
         } break;
         case 0x2a: // aload_0
@@ -81,10 +85,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto index = *byte - 0x2a;
             auto load  = sf->lva.at(index);
-            if (load->isReference()) {
+            if (load->isReference() && !load->isReturnAddress()) {
                 sf->operand_stack.push(load);
             } else {
-                throw std::runtime_error("aload of non-reference object");
+                throw std::runtime_error("aload of non-reference object or "
+                                         "load on a return address");
             }
         } break;
         case 0xbd: // anewarray
@@ -147,8 +152,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             byte++;
             auto objRef = sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (!objRef->isReference()) {
-                std::runtime_error("astore called over a non-reference object");
+            if (!objRef->isReference() || !objRef->isReturnAddress()) {
+                std::runtime_error("astore called over a non-reference or "
+                                   "returnAddress object");
             }
             // return address type??
             if (index > sf->lva.size()) {
@@ -168,8 +174,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             unsigned int index = *byte - 0x4b;
             auto objRef        = sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (!objRef->isReference()) {
-                std::runtime_error("astore called over a non-reference object");
+            if (!objRef->isReference() || !objRef->isReturnAddress()) {
+                std::runtime_error("astore called over a non-reference or "
+                                   "returnAddress object");
             }
             if (index == sf->lva.size()) {
                 sf->lva.push_back(objRef);
@@ -761,16 +768,21 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index       = (indexbyte1 << 8) + indexbyte2;
             auto objref     = sf->operand_stack.top();
             sf->operand_stack.pop();
+            auto field_name = cp->getFieldByIndex(index);
             if (objref->isNull)
                 throw std::runtime_error("NullPointerException");
-            // auto value = cf->at(index);
-            // sf->operand_stack.push(value);
+            auto value = cf->at(field_name);
+            sf->operand_stack.push(value);
         } break;
         case 0xb2: // getstatic
         {
             auto indexbyte1 = *(++byte);
             auto indexbyte2 = *(++byte);
             auto index      = (indexbyte1 << 8) | indexbyte2;
+            auto field_name = cp->getFieldByIndex(index);
+            if (cf->find(field_name) != cf->end()) {
+                sf->operand_stack.push(cf->at(field_name));
+            }
         } break;
         case 0xa7: // goto
         {
@@ -828,7 +840,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x7: // iconst_4
         case 0x8: // iconst_5
         {
-            char e = *byte - 0x3;
+            int e = static_cast<int>(*byte - 0x3);
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&e))));
         } break;
@@ -1055,49 +1067,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             break;
         case 0xb8: // invokestatic
             break;
-        case 0xb6: // invokevirtual
-        {
-            int indexbyte1 = *(++byte);
-            int indexbyte2 = *(++byte);
-            auto index     = (indexbyte1 << 8) | indexbyte2;
-
-            auto value = cp->getMethodNameIndex(index);
-
-            if (value == -2) { // means cp(index) = java/io/PrintStream
-                auto name_and_type = cp->getNameAndTypeByIndex(index);
-                auto found         = name_and_type.find("println");
-                if (found != std::string::npos) {
-                    auto args =
-                        std::string(name_and_type.begin() +
-                                        name_and_type.find_first_of('(') + 1,
-                                    name_and_type.begin() +
-                                        name_and_type.find_first_of(')'));
-                    auto args_size = countArgs(args);
-                    std::vector<std::shared_ptr<ContextEntry>> prints(
-                        args_size);
-                    if (args_size > 0) {
-                        for (auto &print : prints) {
-                            print = sf->operand_stack.top();
-                            sf->operand_stack.pop();
-                        }
-                        for (auto it = prints.end() - 1; it >= prints.begin();
-                             it--) {
-                            it->get()->PrintValue();
-                            std::cout << std::endl;
-                        }
-                    } else {
-                        std::cout << std::endl;
-                    }
-                }
-            } else {
-                std::vector<unsigned char> code(
-                    cm->at(value).attributes[0].code);
-                auto exec_return = Exec(code, &sf->lva);
-                if (exec_return != nullptr) {
-                    sf->operand_stack.push(exec_return);
-                }
-            }
-        } break;
         case 0x80: // ior
         case 0x81: // lor
         {
@@ -1128,7 +1097,15 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xac: // ireturn
-
+        case 0xad: // lreturn
+        {
+            auto retval = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            while (!sf->operand_stack.empty()) {
+                sf->operand_stack.pop();
+            }
+            return retval;
+        } break;
         case 0x78: // ishl
         {
             auto value1 = *sf->operand_stack.top();
@@ -1152,21 +1129,65 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
         case 0xb7: // invokespecial
+        case 0xb6: // invokevirtual
         {
-            auto old_os        = sf->operand_stack;
+            auto old_lva       = sf->lva;
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
             auto cm_index      = cp->getMethodNameIndex(index);
-            if (cm_index != -1) {
+            auto method_name   = cp->getMethodNameByIndex(index);
+            std::shared_ptr<ContextEntry> exec_return;
+            if (cm_index == -2) {
+                auto name_and_type = cp->getNameAndTypeByIndex(index);
+                auto found         = name_and_type.find("println");
+                if (found != std::string::npos) {
+                    auto args =
+                        std::string(name_and_type.begin() +
+                                        name_and_type.find_first_of('(') + 1,
+                                    name_and_type.begin() +
+                                        name_and_type.find_first_of(')'));
+                    auto args_size = countArgs(args);
+                    std::vector<std::shared_ptr<ContextEntry>> prints(
+                        args_size);
+                    if (args_size > 0) {
+                        for (auto &print : prints) {
+                            print = sf->operand_stack.top();
+                            sf->operand_stack.pop();
+                        }
+                        for (auto it = prints.end() - 1; it >= prints.begin();
+                             it--) {
+                            it->get()->PrintValue();
+                            std::cout << std::endl;
+                        }
+                    } else {
+                        std::cout << std::endl;
+                    }
+                }
+            } else if (cm_index > 0) {
+                auto args_length = getArgsLen(method_name);
                 std::vector<unsigned char> code(
                     cm->at(cm_index).attributes[0].code);
-                auto exec_return = Exec(code, &sf->lva);
-                if (exec_return != nullptr) {
+                std::vector<std::shared_ptr<ContextEntry>> lva;
+                for (int i = 0; i < args_length; i++) {
+                    lva.push_back(sf->operand_stack.top());
+                    sf->operand_stack.pop();
+                }
+                auto objectRef = sf->operand_stack.top();
+                lva.push_back(objectRef);
+                std::reverse(lva.begin(), lva.end());
+                sf->operand_stack.pop(); // object ref
+                auto old_os       = sf->operand_stack;
+                exec_return       = Exec(code, &lva);
+                sf->operand_stack = old_os;
+            }
+            if (exec_return != nullptr) {
+                if (exec_return->isReturnAddress()) {
+                    byte = bytecode.begin() + exec_return->context_value.i;
+                } else {
                     sf->operand_stack.push(exec_return);
                 }
             }
-            sf->operand_stack = old_os;
         } break;
         case 0x3b: // istore_0
         case 0x3c: // istore_1
@@ -1176,7 +1197,13 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x3b;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index] = value;
+            if (index > sf->lva.size()) {
+                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            } else if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index] = value;
+            }
         } break;
         case 0x7c: // iushr
         {
@@ -1208,8 +1235,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto branchbyte1 = *(++byte);
             auto branchbyte2 = *(++byte);
 
-            auto offset = (branchbyte1 << 8) | branchbyte2;
-
+            auto offset         = (branchbyte1 << 8) | branchbyte2;
+            int nextInstruction = ++byte - bytecode.begin();
+            auto ce = std::shared_ptr<ContextEntry>(new ContextEntry(
+                "", I, reinterpret_cast<void *>(nextInstruction)));
+            ce->setAsRetAddress();
+            sf->operand_stack.push(ce);
             byte += offset;
 
         } break;
@@ -1225,7 +1256,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
             auto offset = (branchbyte1 << 24) | (branchbyte2 << 16) |
                           (branchbyte3 << 8) | branchbyte4;
-
+            int nextInstruction = ++byte - bytecode.begin();
+            auto ce = std::shared_ptr<ContextEntry>(new ContextEntry(
+                "", I, reinterpret_cast<void *>(nextInstruction)));
+            ce->setAsRetAddress();
+            sf->operand_stack.push(ce);
             byte += offset;
         } break;
         case 0x94: // lcmp
@@ -1324,8 +1359,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                         "", J, reinterpret_cast<void *>(&result))));
             }
         } break;
-        case 0xad: // lreturn
-
         case 0x79: // lshl
         {
             auto value1 = *sf->operand_stack.top();
@@ -1413,12 +1446,33 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto field_name = cp->getFieldByIndex(index);
             auto value      = sf->operand_stack.top();
             sf->operand_stack.pop();
+            sf->operand_stack.pop();
             cf->operator[](field_name) = value;
         } break;
         case 0xb3: // putstatic
-            break;
+        {
+            auto indexbyte1 = *(++byte);
+            auto indexbyte2 = *(++byte);
+            auto index      = (indexbyte1 << 8) | indexbyte2;
+            auto field_name = cp->getFieldByIndex(index);
+            auto value      = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            cf->operator[](field_name) = value;
+        } break;
         case 0xa9: // ret
-            break;
+        {
+            auto index1        = *(++byte);
+            unsigned int index = -1;
+            if (wide) {
+                auto index2 = *(++byte);
+                index       = (index1 << 8) | (index2);
+            } else {
+                index = index1;
+            }
+            auto loadedValue = sf->lva.at(index);
+            loadedValue->setAsRetAddress();
+            return loadedValue;
+        } break;
         case 0xb1: // return
         {
             while (!sf->operand_stack.empty())

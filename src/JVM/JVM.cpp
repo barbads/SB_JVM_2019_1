@@ -80,6 +80,10 @@ void JVM::Run() {
 void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
                           ClassMethods *cm) {
     auto context = &stack_per_thread.top().lva;
-    auto me      = new MethodExecuter(class_loader->getCP(), cm, cf);
+    std::shared_ptr<ContextEntry> ce(new ContextEntry());
+    context->push_back(ce);
+    std::function<int(std::string)> getArgsLength(std::bind(
+        &ClassFile::getMethodArgsLength, class_loader, std::placeholders::_1));
+    auto me = new MethodExecuter(class_loader->getCP(), cm, cf, getArgsLength);
     me->Exec(code, context);
 }

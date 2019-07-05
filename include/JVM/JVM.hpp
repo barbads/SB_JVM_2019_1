@@ -6,6 +6,7 @@
 #include <JVM/structures/StackFrame.hpp>
 #include <MethodExecuter/MethodExecuter.hpp>
 
+#include <functional>
 #include <stack>
 #include <vector>
 

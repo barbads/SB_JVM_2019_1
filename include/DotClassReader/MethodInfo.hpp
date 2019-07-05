@@ -33,6 +33,7 @@ class MethodInfo : FileReader {
     void showMI();
     int miCount();
     MethodInfoCte getMainMethod();
+    int getMethodArgsLength(std::string methodName);
 };
 
 #endif

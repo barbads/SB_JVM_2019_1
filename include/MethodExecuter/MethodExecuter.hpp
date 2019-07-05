@@ -6,6 +6,7 @@
 #include <JVM/structures/FieldMap.hpp>
 #include <JVM/structures/StackFrame.hpp>
 
+#include <functional>
 #include <memory>
 #include <stack>
 #include <string>
@@ -24,9 +25,11 @@ class MethodExecuter {
     ClassFields *cf;
     std::stack<std::pair<std::string, int>> local_operand_stack;
     unsigned int countArgs(std::string);
+    std::function<int(std::string)> getArgsLen;
 
   public:
-    MethodExecuter(ConstantPool *cp, ClassMethods *cm, ClassFields *cf);
+    MethodExecuter(ConstantPool *cp, ClassMethods *cm, ClassFields *cf,
+                   std::function<int(std::string)> getArgsLen);
     std::shared_ptr<ContextEntry>
     Exec(std::vector<unsigned char> bytecode,
          std::vector<std::shared_ptr<ContextEntry>> *ce);

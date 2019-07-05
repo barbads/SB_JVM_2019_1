@@ -48,7 +48,8 @@
     "functional": "cpp",
     "map": "cpp",
     "iomanip": "cpp",
-    "string": "cpp"
+    "string": "cpp",
+    "bit": "cpp"
   },
   "editor.formatOnSave": true,
   "C_Cpp.formatting": "Default",
