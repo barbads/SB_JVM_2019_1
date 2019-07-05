@@ -355,6 +355,29 @@ std::string ConstantPool::resolve(int idx) {
     return utf8_info->bytes;
 }
 
+std::string ConstantPool::getMethodNameByIndex(int index) {
+    if (index > constant_pool.size() - 1 || index == 0) {
+        char error[50];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%ld",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
+    if (constant_pool[index].first != 10) {
+        char error[150];
+        sprintf(error,
+                "Requested descriptor index %d is not a valid "
+                "Methodref, is a %d instead",
+                index, constant_pool[index].first);
+        throw std::invalid_argument(error);
+    }
+    auto methref =
+        std::static_pointer_cast<Methodref>(constant_pool[index].second);
+    auto name_ref = std::static_pointer_cast<NameAndType>(
+        constant_pool[methref->name_type_index].second);
+    return name_ref->name;
+}
+
 int ConstantPool::getMethodNameIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];

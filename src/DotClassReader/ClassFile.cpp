@@ -159,3 +159,7 @@ std::vector<FieldInfoCte> *ClassFile::getFields() { return fi->getFieldInfo(); }
 std::vector<MethodInfoCte> *ClassFile::getMethods() {
     return mi->getMethodInfo();
 }
+
+int ClassFile::getMethodArgsLength(std::string methodName) {
+    return mi->getMethodArgsLength(methodName);
+}

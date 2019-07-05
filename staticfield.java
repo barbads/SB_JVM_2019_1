@@ -2,8 +2,8 @@ class Rectangle
 { 
      int length; //length of rectangle 
      int breadth; //breadth of rectangle 
-     static int rectCount =0; //count rectang objects 
-   
+     static int rectCount = 0; //count rectang objects 
+     
     void setData(int l,int b) 
      { 
       
@@ -16,7 +16,13 @@ class Rectangle
      { 
         int rectArea; 
         rectArea = length * breadth; 
-        return rectArea; 
-        
+        return rectArea;  
      } 
-} 
+    
+     public static void main(String args[]){  
+            Rectangle obj = new Rectangle();  
+            obj.setData(3, 5);
+            int area = obj.area();
+            System.out.println(area);
+     }
+}

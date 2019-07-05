@@ -506,6 +506,15 @@ void MethodInfo::showMI() {
 
 int MethodInfo::miCount() { return method_count; }
 
+int MethodInfo::getMethodArgsLength(std::string methodName) {
+    for (auto method : mi) {
+        if (method.name == methodName) {
+            return method.arg_length;
+        }
+    }
+    return -1;
+}
+
 MethodInfoCte MethodInfo::getMainMethod() {
     MethodInfoCte *mir = nullptr;
     for (auto &method : mi) {

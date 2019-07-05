@@ -38,6 +38,7 @@ class ClassFile : FileReader {
     MethodInfoCte getMainMethod();
     std::vector<FieldInfoCte> *getFields();
     std::vector<MethodInfoCte> *getMethods();
+    int getMethodArgsLength(std::string methodName);
 };
 
 #endif

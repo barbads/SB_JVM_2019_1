@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceRoot}/sb-2019",
-      "args": ["vetor2.class"],
+      "args": ["Rectangle.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

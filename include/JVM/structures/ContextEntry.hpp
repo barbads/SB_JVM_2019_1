@@ -12,6 +12,7 @@ class ContextEntry {
     bool hasContext;
     std::string field_name;
     std::string string_instance;
+    bool isRetAddr = false;
 
   public:
     std::map<int, std::shared_ptr<ContextEntry>> *cf;
@@ -48,7 +49,7 @@ class ContextEntry {
             context_value.b = *reinterpret_cast<unsigned char *>(value);
             break;
         case I:
-            context_value.i = *reinterpret_cast<int *>(value);
+            context_value.i = *((int *)(value));
             break;
         case D:
             context_value.d = *reinterpret_cast<double *>(value);
@@ -141,7 +142,7 @@ class ContextEntry {
             std::cout << context_value.b;
             break;
         case I:
-            std::cout << static_cast<int>(context_value.i);
+            std::cout << context_value.i;
             break;
         case D:
             std::cout << context_value.d;
@@ -167,6 +168,10 @@ class ContextEntry {
         // Case array we need to check if all elements are of type ref
         return true;
     }
+
+    void setAsRetAddress() { isRetAddr = true; }
+
+    bool isReturnAddress() { return isRetAddr; }
 
     std::vector<std::shared_ptr<ContextEntry>> *getArray() {
         if (!isNull) {
