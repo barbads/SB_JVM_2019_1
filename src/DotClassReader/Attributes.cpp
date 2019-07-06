@@ -1,5 +1,8 @@
 #include <DotClassReader/Attributes.hpp>
 
+///
+/// 
+/// 
 Attributes::Attributes(std::ifstream *file) { this->file = file; }
 
 void Attributes::seek() {
@@ -14,10 +17,16 @@ void Attributes::seek() {
     }
 }
 
+///
+/// Gets .class attributes
+///
 std::vector<AttributeClassFile> *Attributes::getClassAttributes() {
     return &attr;
 }
 
+///
+/// Show Attributes by iterating 
+///
 void Attributes::show() {
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "               Attributes" << std::endl;

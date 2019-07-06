@@ -1,6 +1,11 @@
 
 #include <DotClassReader/ClassFile.hpp>
 
+///
+/// ClassFile receives .class file and the file name.
+/// This class will have all the necessary informations for showing and
+/// executing the Java bytecode.
+///
 ClassFile::ClassFile(std::ifstream *file, char const *fileName) {
     this->file     = file;
     this->cp       = new ConstantPool(this->file);
@@ -14,6 +19,9 @@ ClassFile::ClassFile(std::ifstream *file, char const *fileName) {
     };
 }
 
+///
+/// Gets the first for bytes fo the .class file, also known as Magic Number.
+///
 std::string ClassFile::getMagicNumber() {
     file->seekg(0);
     std::stringstream ss;
@@ -25,6 +33,10 @@ std::string ClassFile::getMagicNumber() {
     }
     return ss.str();
 }
+
+///
+/// Parses the .class file and fills the structures from the ClassFile class.
+///
 void ClassFile::Parse() {
     magic = getMagicNumber();
     if (magic != "cafebabe") {
@@ -87,7 +99,9 @@ void ClassFile::Parse() {
     }
 }
 
-// We can implement method type args here
+///
+/// Parses descriptor of functions with number of arguments.
+///
 int ClassFile::parseDescriptor(std::string desc) {
     auto args_start    = desc.find_first_of("(") + 1;
     auto args_end      = desc.find_first_of(")");
@@ -122,6 +136,9 @@ int ClassFile::parseDescriptor(std::string desc) {
     return length;
 };
 
+///
+/// Shows .class file information.
+///
 void ClassFile::Show() {
 
     std::cout << "General Information" << std::endl;
@@ -147,19 +164,34 @@ void ClassFile::Show() {
     attr->show();
 }
 
+///
+/// Checks if "main" method exists.
+///
 MethodInfoCte ClassFile::getMainMethod() {
     // if none main method is found, throws runtime exception
     return mi->getMainMethod();
 }
 
+///
+/// Returns ConstantPool object
+///
 ConstantPool *ClassFile::getCP() { return cp; }
 
+///
+/// Returns Fields information
+///
 std::vector<FieldInfoCte> *ClassFile::getFields() { return fi->getFieldInfo(); }
 
+///
+/// Returns Methods information
+///
 std::vector<MethodInfoCte> *ClassFile::getMethods() {
     return mi->getMethodInfo();
 }
 
+///
+/// Returns argument length of methodName
+///
 int ClassFile::getMethodArgsLength(std::string methodName) {
     return mi->getMethodArgsLength(methodName);
 }
