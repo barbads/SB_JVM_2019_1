@@ -5,6 +5,10 @@
 #include <constants/AttributeClassFile.hpp>
 #include <iostream>
 
+/**
+ * Attributes is the class responsible for read class attributtes section from
+ * file and implements FileReader interface
+ */
 class Attributes : FileReader {
   private:
     int attributes_count;

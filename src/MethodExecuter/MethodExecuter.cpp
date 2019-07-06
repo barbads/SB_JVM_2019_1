@@ -65,6 +65,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(++byte);
             if (wide) {
+                wide             = false;
                 const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
             } else {
@@ -99,6 +100,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(byte + 1);
             if (wide) {
+                wide             = false;
                 const int index2 = *(byte + 2);
                 index            = index1 << 8 + index2;
                 byte++;
@@ -143,6 +145,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(byte + 1);
             if (wide) {
+                wide             = false;
                 const int index2 = *(byte + 2);
                 index            = index1 << 8 + index2;
                 byte++;
@@ -372,8 +375,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(byte + 1);
             if (wide) {
+                wide             = false;
                 const int index2 = *(byte + 2);
-                index            = index1 << 8 + index2;
+                index            = (index1 << 8) | index2;
                 byte++;
             } else {
                 index = index1;
@@ -444,6 +448,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(byte + 1);
             if (wide) {
+                wide             = false;
                 const int index2 = *(byte + 2);
                 index            = index1 << 8 + index2;
                 byte++;
@@ -687,6 +692,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(++byte);
             if (wide) {
+                wide             = false;
                 const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
             } else {
@@ -735,6 +741,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index        = -1;
             const int index1 = *(++byte);
             if (wide) {
+                wide             = false;
                 const int index2 = *(++byte);
                 index            = index1 << 8 + index2;
             } else {
@@ -1009,8 +1016,24 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x84: // iinc
         {
-            auto index    = *(++byte);
-            char constant = *(++byte);
+            int index   = -1;
+            auto index1 = *(++byte);
+            if (wide) {
+                auto index2 = *(++byte);
+                index       = (index1 << 8) | index2;
+            } else {
+                index = index1;
+            }
+
+            int constant   = 0;
+            char constant1 = *(++byte);
+            if (wide) {
+                char constant2 = *(++byte);
+                constant       = (constant1 << 8) | constant2;
+                wide           = false;
+            } else {
+                constant = constant1;
+            }
             sf->lva[index]->context_value.i += constant;
 
         } break;
@@ -1046,6 +1069,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x1d: // iload_3
         {
             auto index = *(byte)-0x1a;
+
             auto value = sf->lva.at(index);
             sf->operand_stack.push(value);
 
@@ -1487,6 +1511,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index1        = *(++byte);
             unsigned int index = -1;
             if (wide) {
+                wide        = false;
                 auto index2 = *(++byte);
                 index       = (index1 << 8) | (index2);
             } else {

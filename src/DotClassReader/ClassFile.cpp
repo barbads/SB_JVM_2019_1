@@ -1,11 +1,6 @@
 
 #include <DotClassReader/ClassFile.hpp>
 
-///
-/// ClassFile receives .class file and the file name.
-/// This class will have all the necessary informations for showing and
-/// executing the Java bytecode.
-///
 ClassFile::ClassFile(std::ifstream *file, char const *fileName) {
     this->file     = file;
     this->cp       = new ConstantPool(this->file);
@@ -36,8 +31,10 @@ std::string ClassFile::getMagicNumber() {
 
 ///
 /// Parses the .class file and fills the structures from the ClassFile class.
+/// This method used to be called Parse, but due to interface implementation was
+/// changed to seek.
 ///
-void ClassFile::Parse() {
+void ClassFile::seek() {
     magic = getMagicNumber();
     if (magic != "cafebabe") {
         throw std::range_error("Invalid .class file, "
@@ -100,7 +97,7 @@ void ClassFile::Parse() {
 }
 
 ///
-/// Parses descriptor of functions with number of arguments.
+/// Parses descriptor of functions to return arguments size
 ///
 int ClassFile::parseDescriptor(std::string desc) {
     auto args_start    = desc.find_first_of("(") + 1;
@@ -139,7 +136,7 @@ int ClassFile::parseDescriptor(std::string desc) {
 ///
 /// Shows .class file information.
 ///
-void ClassFile::Show() {
+void ClassFile::show() {
 
     std::cout << "General Information" << std::endl;
     std::cout << "Minor " << minor << std::endl;
@@ -159,8 +156,8 @@ void ClassFile::Show() {
 
     cp->show();
     itf->show();
-    fi->showFI();
-    mi->showMI();
+    fi->show();
+    mi->show();
     attr->show();
 }
 
