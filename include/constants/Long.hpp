@@ -1,4 +1,3 @@
-#include <string.h>
 #include <vector>
 
 struct Long {
@@ -7,12 +6,15 @@ struct Long {
     unsigned char *low_bytes;
     long val;
     Long(std::vector<unsigned char> hbytes, std::vector<unsigned char> lbytes) {
-        high_bytes = reinterpret_cast<unsigned char *>(hbytes.data());
-        low_bytes  = reinterpret_cast<unsigned char *>(lbytes.data());
-        unsigned char *fullbytes;
-        strcpy((char *)fullbytes, (char *)high_bytes);
-        strcat((char *)fullbytes, (char *)low_bytes);
-        memcpy(&val, fullbytes, sizeof(long));
+        unsigned int high =
+            (*(reinterpret_cast<unsigned char *>(hbytes.data())) << 8) & 0xF0;
+        unsigned int low_bytes =
+            *(reinterpret_cast<unsigned char *>(lbytes.data())) & 0x0F;
+        unsigned char fullbytes = high | low_bytes;
+        if (high_bytes == nullptr) {
+            std::cout << "here" << std::endl;
+        }
+        // memcpy(&val, fullbytes, sizeof(long));
     };
     long getValue() { return val; };
 };

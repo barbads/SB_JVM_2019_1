@@ -11,6 +11,12 @@
 #include <string>
 #include <vector>
 
+/**
+ * ConstantPool is a class responsible for read the constant pool section of a
+ * .class file and save its structures into a vector of pairs containing entry
+ * tag and void pointer. The entry tag identifies the void pointer, this allows
+ * us to cast/decast from/to void* to desired constant structure
+ */
 class ConstantPool : FileReader {
   private:
     int pool_size;

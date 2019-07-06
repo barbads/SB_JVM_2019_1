@@ -11,6 +11,10 @@ class FileReader {
     std::string getUTF8Data(std::ifstream *file, int lenght);
     std::vector<unsigned char> getInfoRaw(std::ifstream *file, int offset);
     std::string getInfoHex(std::ifstream *file, int offset);
+
+  public:
+    virtual void seek() = 0;
+    virtual void show() = 0;
 };
 
 #endif

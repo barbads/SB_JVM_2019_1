@@ -33,7 +33,7 @@ void FieldInfo::seek() {
 
 std::vector<FieldInfoCte> *FieldInfo::getFieldInfo() { return &fi; }
 
-void FieldInfo::showFI() {
+void FieldInfo::show() {
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "               FieldInfo" << std::endl;
     std::cout << "--------------------------------------------" << std::endl;

@@ -12,6 +12,10 @@
 #include <memory>
 #include <vector>
 
+/**
+ * MethodInfo is the class responsible for read class methods section from
+ * file and implements FileReader interface
+ */
 class MethodInfo : FileReader {
   private:
     int method_count;
@@ -30,7 +34,7 @@ class MethodInfo : FileReader {
     MethodInfo(std::ifstream *file, ConstantPool *cp);
     void seek();
     std::vector<MethodInfoCte> *getMethodInfo();
-    void showMI();
+    void show();
     int miCount();
     MethodInfoCte getMainMethod();
     int getMethodArgsLength(std::string methodName);

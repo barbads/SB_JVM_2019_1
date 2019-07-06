@@ -11,6 +11,11 @@
 #include <map>
 #include <string>
 
+///
+/// ClassFile receives .class file and the file name.
+/// This class will have all the necessary informations for showing and
+/// executing the Java bytecode.
+///
 class ClassFile : FileReader {
   private:
     int minor, major;
@@ -32,8 +37,8 @@ class ClassFile : FileReader {
 
   public:
     ClassFile(std::ifstream *file, char const *fileName);
-    void Parse();
-    void Show();
+    void seek();
+    void show();
     ConstantPool *getCP();
     MethodInfoCte getMainMethod();
     std::vector<FieldInfoCte> *getFields();

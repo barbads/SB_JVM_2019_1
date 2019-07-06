@@ -120,6 +120,9 @@ MethodInfo::MethodInfo(std::ifstream *file, ConstantPool *cp) {
     };
 }
 
+///
+/// Parses the information of the methods.
+///
 void MethodInfo::seek() {
     method_count = getInfo(file, 2);
 
@@ -433,7 +436,7 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
 
 std::vector<MethodInfoCte> *MethodInfo::getMethodInfo() { return &mi; }
 
-void MethodInfo::showMI() {
+void MethodInfo::show() {
     std::cout << "MethodInfo" << std::endl;
     std::cout << "-------------------" << std::endl;
     for (auto elem : mi) {

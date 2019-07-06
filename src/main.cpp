@@ -17,9 +17,9 @@ int main(int argc, char const *argv[]) {
         file = ifstream(argv[1], ios::binary);
     }
     auto cf = ClassFile(&file, argv[1]);
-    cf.Parse();
+    cf.seek();
     // If you want to show class info, just uncomment the line bellow
-    cf.Show();
+    cf.show();
 
     auto jvm = JVM(&cf);
     jvm.Run();

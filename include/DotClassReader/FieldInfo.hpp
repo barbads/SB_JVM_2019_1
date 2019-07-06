@@ -17,7 +17,7 @@ class FieldInfo : FileReader {
     FieldInfo(std::ifstream *file);
     void seek();
     std::vector<FieldInfoCte> *getFieldInfo();
-    void showFI();
+    void show();
     int fiCount();
 };
 
