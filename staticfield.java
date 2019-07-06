@@ -4,7 +4,7 @@ class Rectangle
      static int breadth; //breadth of rectangle 
      static int rectCount = 0; //count rectang objects 
      
-     static void setData(int l,int b) 
+     void setData(int l,int b) 
      { 
       
         length=l; 

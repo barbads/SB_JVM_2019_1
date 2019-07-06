@@ -1065,8 +1065,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             break;
         case 0xb9: // invokeinterface
             break;
-        case 0xb8: // invokestatic
-            break;
         case 0x80: // ior
         case 0x81: // lor
         {
@@ -1128,10 +1126,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
+        case 0xb8: // invokestatic
         case 0xb7: // invokespecial
         case 0xb6: // invokevirtual
         {
             auto old_lva       = sf->lva;
+            auto invokeType    = *(byte);
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
@@ -1173,10 +1173,13 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     lva.push_back(sf->operand_stack.top());
                     sf->operand_stack.pop();
                 }
-                auto objectRef = sf->operand_stack.top();
-                lva.push_back(objectRef);
+                if (invokeType != 0xb8) {
+                    // case static we dont need to get reference from stack
+                    auto objectRef = sf->operand_stack.top();
+                    lva.push_back(objectRef);
+                    sf->operand_stack.pop(); // object ref
+                }
                 std::reverse(lva.begin(), lva.end());
-                sf->operand_stack.pop(); // object ref
                 auto old_os       = sf->operand_stack;
                 exec_return       = Exec(code, &lva);
                 sf->operand_stack = old_os;
@@ -1197,9 +1200,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x3b;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (index > sf->lva.size()) {
-                throw std::runtime_error("ArrayIndexOutOfBoundsException");
-            } else if (index == sf->lva.size()) {
+            auto lva_size = sf->lva.size();
+            if (index > lva_size) {
+                while (index > lva_size) {
+                    sf->lva.push_back(std::make_shared<ContextEntry>());
+                    lva_size = sf->lva.size();
+                }
+            }
+            if (index == sf->lva.size()) {
                 sf->lva.push_back(value);
             } else {
                 sf->lva[index] = value;
@@ -1441,19 +1449,15 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x57: // pop
         {
             if (category(sf->operand_stack.top()->entry_type) == 1) {
-                auto value = sf->operand_stack.top();
                 sf->operand_stack.pop();
             }
         } break;
         case 0x58: // pop2
         {
             if (category(sf->operand_stack.top()->entry_type) == 2) {
-                auto value = sf->operand_stack.top();
                 sf->operand_stack.pop();
             } else if (category(sf->operand_stack.top()->entry_type) == 1) {
-                auto value1 = sf->operand_stack.top();
                 sf->operand_stack.pop();
-                auto value2 = sf->operand_stack.top()->context_value.i & 0x3f;
                 sf->operand_stack.pop();
             }
         } break;
@@ -1519,7 +1523,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0xaa: { // tableswitch
             auto index1 = sf->operand_stack.top();
-            auto index = static_cast<signed int>(index1->context_value.b);
+            auto index  = static_cast<signed int>(index1->context_value.b);
             std::cout << "index do tableswitch: " << index << std::endl;
             break;
         }
