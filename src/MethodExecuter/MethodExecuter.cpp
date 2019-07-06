@@ -796,8 +796,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             unsigned short int branchbyte1 = *(byte + 1);
             unsigned short int branchbyte2 = *(byte + 2);
 
-            int offset = (signed int)(branchbyte1 << 8) | branchbyte2;
-            offset -= (1 << 16); // 2 complement (java 😡)
+            short int offset = (signed int)(branchbyte1 << 8) | branchbyte2;
             byte += offset;
             byte--;
         } break;
