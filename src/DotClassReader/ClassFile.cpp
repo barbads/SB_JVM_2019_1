@@ -34,7 +34,7 @@ void ClassFile::Parse() {
 
     minor   = getInfo(file, 2);
     major   = getInfo(file, 2);
-    version = major + "." + minor;
+    version = std::to_string(major) + "." + std::to_string(minor);
 
     cp->seek();
     access_flags = getInfo(file, 2);

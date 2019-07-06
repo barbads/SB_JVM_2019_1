@@ -1,10 +1,10 @@
 class Rectangle 
 { 
-     int length; //length of rectangle 
-     int breadth; //breadth of rectangle 
+     static int length; //length of rectangle 
+     static int breadth; //breadth of rectangle 
      static int rectCount = 0; //count rectang objects 
      
-    void setData(int l,int b) 
+     static void setData(int l,int b) 
      { 
       
         length=l; 
@@ -12,7 +12,7 @@ class Rectangle
         rectCount++; 
      } 
      //method to calculate area of rectangle 
-     int area() 
+     static int area() 
      { 
         int rectArea; 
         rectArea = length * breadth; 
