@@ -1522,9 +1522,60 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xaa: { // tableswitch
-            auto index1 = sf->operand_stack.top();
-            auto index  = static_cast<signed int>(index1->context_value.b);
-            std::cout << "index do tableswitch: " << index << std::endl;
+            int tableswitchline = i;
+            int padding         = i;
+            auto index1         = sf->operand_stack.top();
+            auto index = static_cast<signed int>(index1->context_value.b);
+            while (padding % 4 != 0) {
+                byte++; // removes padding bytes (up to 3)
+                padding++;
+            }
+            signed int default_ = 0;
+            for (int k = 0; k < 4; k++) { // gets default value
+                auto default1 = static_cast<unsigned short int>(*byte);
+                int sll       = 24 - (8 * k);
+                default_      = (default1 << sll) | default_;
+                byte++;
+            }
+
+            signed int low = 0;
+            for (int k = 0; k < 4; k++) { // gets low value
+                auto lowbyte = static_cast<unsigned short int>(*byte);
+                int sll      = 24 - (8 * k);
+                low          = (lowbyte << sll) | low;
+                byte++;
+            }
+
+            signed int high = 0;
+            for (int k = 0; k < 4; k++) { // gets high value
+                auto highbyte = static_cast<unsigned short int>(*byte);
+                int sll       = 24 - (8 * k);
+                high          = (highbyte << sll) | high;
+                byte++;
+            }
+
+            if ((index < low) || (index > high)) { // sends to default address
+                byte += default_;
+            }
+            int k = 0;
+            std::map<unsigned int, signed int> jumptable;
+            while (k < high) {
+                int jumpoffset = 0;
+                for (int l = 0; l < 4; l++) { // gets offset
+                    auto value = static_cast<unsigned short int>(*byte);
+                    int sll = 24 - (8 * l); // value = byte1<<24 | byte2<<16 |
+                                            // byte3<<8 | byte4<<0
+                    jumpoffset = (value << sll) | jumpoffset;
+                    byte++;
+                }
+                jumptable.insert(std::make_pair(k + 1, jumpoffset));
+                k++;
+            }
+            byte--;
+            int op = jumptable.at(1);
+            byte -= op; // voltar pc para endereco de tableswitch
+            int offset = jumptable.at(index);
+            byte += offset;
             break;
         }
         case 0xc4: // wide

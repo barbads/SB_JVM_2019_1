@@ -53,5 +53,16 @@
   },
   "editor.formatOnSave": true,
   "C_Cpp.formatting": "Default",
-  "C_Cpp.intelliSenseEngineFallback": "Enabled"
+  "C_Cpp.intelliSenseEngineFallback": "Enabled",
+  "clang.executable": "clang",
+  "clang.completion.enable": true,
+  "clang.cxxflags": [
+    "-std=c++11",
+    "-I./include"
+  ],
+  "clang.cflags": [
+    "-std=c99",
+    "-Ic:/your/C/include/path1",
+    "-Ic:/your/C/include/path2"
+  ],
 }
