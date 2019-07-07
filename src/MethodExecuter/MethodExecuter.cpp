@@ -1000,33 +1000,33 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto branchbyte1 = *(byte + 1);
             auto branchbyte2 = *(byte + 2);
             int offset       = 0;
-            if (index == 0) {
+            if (index == 0) { // if_icmpeq
                 if (value1->context_value.b == value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
-            } else if (index == 1) {
+            } else if (index == 1) { // if_icmpne
                 if (value1->context_value.b != value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
-            } else if (index == 2) {
+            } else if (index == 2) { // if_icmplt
                 if (value1->context_value.b < value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
-            } else if (index == 3) {
-                if (value1->context_value.b <= value2->context_value.b) {
+            } else if (index == 3) { // if_icmpge
+                if (value1->context_value.b >= value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
-            } else if (index == 4) {
+            } else if (index == 4) { // if_ifmpgt
                 if (value1->context_value.b > value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
-            } else if (index == 5) {
-                if (value1->context_value.b >= value2->context_value.b) {
+            } else if (index == 5) { // if_icmple
+                if (value1->context_value.b <= value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
