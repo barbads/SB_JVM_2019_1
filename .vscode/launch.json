@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/testes/double_logico.class"],
+      "args": ["testes/testes/double_cast.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

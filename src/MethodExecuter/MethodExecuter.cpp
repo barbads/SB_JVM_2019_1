@@ -271,28 +271,60 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0x90: // d2f
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value->entry_type      = F;
+            value->context_value.f = (float)value->context_value.d;
+            sf->operand_stack.push(value);
+        } break;
         case 0x86: // i2f
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value->entry_type      = F;
+            value->context_value.f = (float)value->context_value.i;
+            sf->operand_stack.push(value);
+        } break;
         case 0x89: // l2f
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type = F;
+            value->entry_type      = F;
+            value->context_value.f = (float)value->context_value.j;
+
             sf->operand_stack.push(value);
         } break;
-        case 0x8e: // d2i
         case 0x88: // l2i
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type = I;
+            value->entry_type      = I;
+            value->context_value.i = (int)value->context_value.j;
             sf->operand_stack.push(value);
         } break;
-        case 0x8f: // d2l
+        case 0x8e: // d2i
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value->entry_type      = I;
+            value->context_value.i = (int)value->context_value.d;
+            sf->operand_stack.push(value);
+        } break;
         case 0x85: // i2l
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type = L;
+            value->entry_type      = J;
+            value->context_value.j = (long)value->context_value.i;
+            sf->operand_stack.push(value);
+        } break;
+        case 0x8f: // d2l
+        {
+            auto value = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value->entry_type      = J;
+            value->context_value.j = (long)value->context_value.d;
             sf->operand_stack.push(value);
         } break;
         case 0x63: // dadd
