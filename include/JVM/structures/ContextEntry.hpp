@@ -2,6 +2,7 @@
 #define _ContextEntry_H_
 
 #include <JVM/structures/Types.hpp>
+#include <iomanip>
 #include <iostream>
 #include <memory>
 #include <string>
@@ -15,7 +16,7 @@ class ContextEntry {
     bool isRetAddr = false;
 
   public:
-    std::map<int, std::shared_ptr<ContextEntry>> *cf;
+    std::map<std::string, std::shared_ptr<ContextEntry>> *cf;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
     Type entry_type;
@@ -46,6 +47,7 @@ class ContextEntry {
         isNull           = false;
         switch (entryType) {
         case B:
+            context_value.i = *((short int *)(value));
             context_value.b = *reinterpret_cast<unsigned char *>(value);
             break;
         case I:
@@ -94,16 +96,23 @@ class ContextEntry {
         l          = std::vector<std::shared_ptr<ContextEntry>>();
         arrayRef   = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
         for (auto &ref : arrayRef) {
-            ref = nullptr;
+            int zero = 0;
+            if (entryType != L) {
+                ref = std::make_shared<ContextEntry>(
+                    "", entryType, reinterpret_cast<void *>(&zero));
+            } else {
+                ref = std::make_shared<ContextEntry>();
+            }
         }
     }
 
     ContextEntry() {
-        isNull = true;
-        l      = std::vector<std::shared_ptr<ContextEntry>>();
+        isNull          = true;
+        l               = std::vector<std::shared_ptr<ContextEntry>>();
+        context_value.i = 0;
     }
 
-    ContextEntry(std::map<int, std::shared_ptr<ContextEntry>> *cf,
+    ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> *cf,
                  void *value) {
         // case an objectref has fields
         isNull     = false;
@@ -139,7 +148,7 @@ class ContextEntry {
         }
         switch (entry_type) {
         case B:
-            std::cout << context_value.b;
+            std::cout << (unsigned int)context_value.b;
             break;
         case I:
             std::cout << context_value.i;
@@ -148,7 +157,8 @@ class ContextEntry {
             std::cout << context_value.d;
             break;
         case F:
-            std::cout << context_value.f;
+            std::cout << std::fixed << std::setprecision(2)
+                      << (float)context_value.f;
             break;
         case J:
             std::cout << context_value.j;

@@ -161,7 +161,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             // return address type??
             if (index > sf->lva.size()) {
-                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+                while (index > sf->lva.size())
+                    sf->lva.push_back(std::make_shared<ContextEntry>());
             }
             if (index == sf->lva.size()) {
                 sf->lva.push_back(objRef);
@@ -258,9 +259,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x10: // bipush
         {
-            auto value = *(++byte);
+            int value = *(++byte);
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
-                new ContextEntry("", I, reinterpret_cast<void *>(&value))));
+                new ContextEntry("", B, reinterpret_cast<void *>(&value))));
         } break;
         case 0xc0: // checkcast
         {
@@ -361,7 +362,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (value2.context_value.i == 0) {
+            if (value2.context_value.d == 0) {
                 throw std::runtime_error("ArithmeticException");
             } else {
                 auto result = value1 / value2;
@@ -457,8 +458,16 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index]     = value;
-            sf->lva[index + 1] = value;
+            if (index > sf->lva.size()) {
+                while (index > sf->lva.size()) {
+                    sf->lva.push_back(std::make_shared<ContextEntry>());
+                }
+            }
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index] = value;
+            }
         } break;
         case 0x47: // dstore_0
         case 0x48: // dstore_1
@@ -796,8 +805,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             unsigned short int branchbyte1 = *(byte + 1);
             unsigned short int branchbyte2 = *(byte + 2);
 
-            int offset = (signed int)(branchbyte1 << 8) | branchbyte2;
-            offset -= (1 << 16); // 2 complement (java 😡)
+            short int offset = (signed int)(branchbyte1 << 8) | branchbyte2;
             byte += offset;
             byte--;
         } break;
@@ -1547,11 +1555,64 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xaa: { // tableswitch
-            auto index1 = sf->operand_stack.top();
-            auto index  = static_cast<signed int>(index1->context_value.b);
-            std::cout << "index do tableswitch: " << index << std::endl;
-            break;
-        }
+            auto inital_pc      = byte;
+            int tableswitchline = i;
+            int padding         = i;
+            auto index1         = sf->operand_stack.top();
+            auto index = static_cast<signed int>(index1->context_value.b);
+            while (padding % 4 != 0) {
+                byte++; // removes padding bytes (up to 3)
+                padding++;
+            }
+            signed int default_ = 0;
+            for (int k = 0; k < 4; k++) { // gets default value
+                auto default1 = static_cast<unsigned short int>(*byte);
+                int sll       = 24 - (8 * k);
+                default_      = (default1 << sll) | default_;
+                byte++;
+            }
+
+            signed int low = 0;
+            for (int k = 0; k < 4; k++) { // gets low value
+                auto lowbyte = static_cast<unsigned short int>(*byte);
+                int sll      = 24 - (8 * k);
+                low          = (lowbyte << sll) | low;
+                byte++;
+            }
+
+            signed int high = 0;
+            for (int k = 0; k < 4; k++) { // gets high value
+                auto highbyte = static_cast<unsigned short int>(*byte);
+                int sll       = 24 - (8 * k);
+                high          = (highbyte << sll) | high;
+                byte++;
+            }
+
+            if ((index < low) || (index > high)) { // sends to default address
+                byte = inital_pc;
+                byte += default_;
+            } else {
+                int k = 0;
+                std::map<unsigned int, signed int> jumptable;
+                while (k < high) {
+                    int jumpoffset = 0;
+                    for (int l = 0; l < 4; l++) { // gets offset
+                        auto value = static_cast<unsigned short int>(*byte);
+                        int sll = 24 - (8 * l); // value = byte1<<24 | byte2<<16
+                                                // | byte3<<8 | byte4<<0
+                        jumpoffset = (value << sll) | jumpoffset;
+                        byte++;
+                    }
+                    jumptable.insert(std::make_pair(k + 1, jumpoffset));
+                    k++;
+                }
+                byte--;
+                int op = jumptable.at(1);
+                byte -= op; // voltar pc para endereco de tableswitch
+                int offset = jumptable.at(index);
+                byte += offset;
+            }
+        } break;
         case 0xc4: // wide
         {
             wide = true;

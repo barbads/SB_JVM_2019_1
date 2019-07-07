@@ -8,12 +8,12 @@
       "name": "(gdb) Launch",
       "type": "cppdbg",
       "request": "launch",
-      "program": "${workspaceRoot}/sb-2019",
-      "args": ["Rectangle.class"],
+      "program": "${workspaceFolder}/sb-2019",
+      "args": ["testes/testes/ArrayUniDemo.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
-      "externalConsole": true,
+      "externalConsole": false,
       "MIMode": "gdb",
       "setupCommands": [
         {

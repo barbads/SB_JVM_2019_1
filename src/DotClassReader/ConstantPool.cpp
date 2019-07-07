@@ -151,8 +151,8 @@ void ConstantPool::add_to_pool(int tag) {
     } break;
     case 5: {
         // Long
-        auto high_bytes = getInfoRaw(file, 4);
-        auto low_bytes  = getInfoRaw(file, 4);
+        auto high_bytes = getInfo(file, 4);
+        auto low_bytes  = getInfo(file, 4);
         auto long_info  = std::make_shared<Long>(high_bytes, low_bytes);
         constant_pool.push_back(std::make_pair(tag, long_info));
         constant_pool.push_back(std::make_pair(-1, std::make_shared<float>(0)));
@@ -266,10 +266,7 @@ void ConstantPool::show() {
         } break;
         case 5: {
             auto long_info = std::static_pointer_cast<Long>(elem->second);
-            std::cout << "Long_info:" << std::endl
-                      << "high bytes: " << long_info->high_bytes << std::endl
-                      << "low bytes: " << long_info->low_bytes << std::endl
-                      << std::endl;
+            std::cout << "Long_info:" << std::endl << std::endl;
             i++;
             std::cout << "[" << i << "] Long continuation\n\n";
             elem++;
@@ -582,7 +579,7 @@ DoubleLong ConstantPool::getNumberByIndex(int index) {
                 ->getValue();
         DoubleLong dl;
         dl.t     = J;
-        dl.val.d = number;
+        dl.val.l = number;
         return dl;
     } break;
     default:

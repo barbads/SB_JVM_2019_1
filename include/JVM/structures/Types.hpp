@@ -2,6 +2,7 @@
 #define _Types_H_
 
 #include <map>
+#include <memory>
 #include <string>
 
 enum Type { B, C, D, F, I, J, S, Z, L, R };
@@ -20,7 +21,6 @@ int static category(Type t) {
 static const std::map<int, Type> ATypeMap = std::map<int, Type>{
     {4, B}, {5, C}, {6, F}, {7, D}, {8, B}, {9, S}, {10, I}, {11, J},
 };
-
 /*B = byte
   C = char
   D = double
