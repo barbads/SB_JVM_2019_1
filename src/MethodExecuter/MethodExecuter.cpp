@@ -992,9 +992,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xa4: // if_icmple
         {
             auto index  = *(byte)-0x9f;
-            auto value1 = sf->operand_stack.top();
-            sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
 
             auto branchbyte1 = *(byte + 1);
@@ -1021,7 +1021,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte--;
                 }
             } else if (index == 4) {
-                if (value1->context_value.b <= value2->context_value.b) {
+                if (value1->context_value.b > value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }

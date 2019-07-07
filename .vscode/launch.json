@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/float_cast.class"],
+      "args": ["testes/ForDemo.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
