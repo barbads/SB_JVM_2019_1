@@ -4,6 +4,11 @@
 #include <fstream>
 #include <vector>
 
+/**
+ * FileReader class is used to read the .class file. All classes used to read
+ * the .class file (ClassFile, MethodInfo, AttributesInfo...) inherit this
+ * class.
+ */
 class FileReader {
   protected:
     int getTag(std::ifstream *file);

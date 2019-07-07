@@ -10,6 +10,11 @@
 #include <stack>
 #include <vector>
 
+/**
+ * JVM Class is the main class of the interpreter. It receives the class file
+ * and put it in the local class_loader structure. This veriable will be used to
+ * get the byte code and execute using the executeByteCode method.
+ */
 class JVM {
   private:
     std::stack<StackFrame> stack_per_thread;
