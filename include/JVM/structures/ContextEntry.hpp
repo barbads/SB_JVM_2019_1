@@ -197,16 +197,19 @@ class ContextEntry {
         if (!isArray) {
             throw std::runtime_error("Could not push to a not-array structure");
         }
-        if (ce->entry_type != this->entry_type) {
+        if (ce->entry_type != this->entry_type && ce->entry_type != R) {
             throw std::runtime_error(
                 "ArrayIndexOutOfBoundsException: Could not add a reference "
                 "from a different type into array");
         }
-        if (index >= arrayRef.size()) {
+        if (index > arrayRef.size()) {
             throw std::runtime_error("ArrayIndexOutOfBoundsException");
+        } else if (index == arrayRef.size()) {
+            arrayRef.push_back(ce);
+        } else {
+            auto pos = arrayRef.begin() + index;
+            arrayRef.insert(pos, ce);
         }
-        auto pos = arrayRef.begin() + index;
-        arrayRef.insert(pos, ce);
     }
 
     ContextEntry arrayLength() {

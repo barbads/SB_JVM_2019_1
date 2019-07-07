@@ -29,6 +29,10 @@ ConstantPool::ConstantPool(std::ifstream *file) {
         std::make_pair(-1, std::make_shared<float>(0)));
 }
 
+///
+/// Parse the constant pool area of the .class file.
+/// It fills the constant_pool vector
+///
 void ConstantPool::seek() {
     // go to file start
     file->seekg(0);
@@ -45,26 +49,29 @@ void ConstantPool::seek() {
     resolve_pool();
 }
 
+///
+/// Used by the method seek to fill constant_pool vector
+/// For pool we need a vector of different types with different sizes
+/// so we define as a vector of pairs (tag, void*)
+/// where void* is a pointer for any structure that we need to handle
+/// latter to convert back to its type, so first is the tag for the type
+/// itself in go you could read this as
+///
+/// constantpool := []interface{}
+///
+/// for _, elem := range constantpool {
+///
+/// switch (elem.(type)) {
+/// case cte_type:
+///      .
+///      .
+///      .
+///      .
+///      .
+///      .
+/// }
+///
 void ConstantPool::add_to_pool(int tag) {
-    // For pool we need a vector of different types with different sizes
-    // so we define as a vector of pairs (tag, void*)
-    // where void* is a pointer for any structure that we need to handle
-    // latter to convert back to its type, so first is the tag for the type
-    // itself in go you could read this as
-    //
-    // constantpool := []interface{}
-    //
-    // for _, elem := range constantpool {
-    //
-    // switch (elem.(type)) {
-    // case cte_type:
-    //      .
-    //      .
-    //      .
-    //      .
-    //      .
-    //      .
-    // }
     switch (tag) {
     case 7: {
         // Class
@@ -166,10 +173,11 @@ void ConstantPool::add_to_pool(int tag) {
     }
 }
 
+/// Show ConstantPool entries.
+/// For all elements in constant pool we decode from void* to tag_type
+/// associated using static_pointer_cast to convert back to proper type, and
+/// handling each one as necessary
 void ConstantPool::show() {
-    // for all elements in constant pool we decode from void* to tag_type
-    // associated using static_pointer_cast to convert back to proper type, and
-    // handling each one as necessary
 
     std::cout << "--------------------------------------------" << std::endl;
     std::cout << "               Constant Pool" << std::endl;
@@ -288,6 +296,9 @@ void ConstantPool::show() {
     std::cout << std::endl;
 }
 
+/// Used by seek after it has alreay read all constant pool values.
+/// It names the created variables in add_to_pool whose names are
+/// stored in other constant pool entries
 void ConstantPool::resolve_pool() {
     for (auto i = 1; i < constant_pool.size() - 2; i++) {
         if (constant_pool[i].first != 3 && constant_pool[i].first != 4 &&
@@ -299,6 +310,7 @@ void ConstantPool::resolve_pool() {
     }
 }
 
+/// Used by resolve_pool in each interation
 std::string ConstantPool::resolve(int idx) {
     auto tag      = constant_pool[idx].first;
     auto constant = constant_pool[idx].second;
@@ -352,6 +364,9 @@ std::string ConstantPool::resolve(int idx) {
     return utf8_info->bytes;
 }
 
+/// It receives a index to a constant pool Methodref_info entry
+/// (tag = 10, represented by Methodref.hpp) and returns the method name.
+/// If the index apoints to other tag, the method is aborted.
 std::string ConstantPool::getMethodNameByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];
@@ -375,6 +390,11 @@ std::string ConstantPool::getMethodNameByIndex(int index) {
     return name_ref->name;
 }
 
+/// It receives a index to a constant pool Methodref_info entry
+/// (tag = 10, represented by Methodref.hpp) and returns the method name index.
+/// If the index apoints to other tag, the method is aborted.
+/// If the class name is java/lang/Object it returns -1
+/// If the class name is java/io/PrintStream it returns -2
 int ConstantPool::getMethodNameIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];
@@ -406,6 +426,9 @@ int ConstantPool::getMethodNameIndex(int index) {
     return name_index;
 }
 
+/// It gets a index to the context pool and return its name if its pointing to a
+/// Utf8, Class, Methodref, Fieldref, String,
+/// Double, Float, Integer, Long or InterfaceMethodref.
 std::string ConstantPool::getNameByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];
@@ -423,7 +446,9 @@ std::string ConstantPool::getNameByIndex(int index) {
         char error[150];
         sprintf(error,
                 "Requested descriptor index %d is not a valid "
-                "UTF8 or Class_info entry on constant_pool, is a %d instead",
+                "Utf8, Class, Methodref, Fieldref, "
+                "String, Double, Float, Integer, Long or "
+                "InterfaceMethodref on constant_pool, is a %d instead",
                 index, constant_pool[index].first);
         throw std::invalid_argument(error);
     }
@@ -497,6 +522,8 @@ std::string ConstantPool::getNameByIndex(int index) {
     return "";
 }
 
+/// Return the UTF-8 constant pool entry with name "LineNuberTable" witch is
+/// used by debbuger (but not implemented on this code)
 int ConstantPool::getLineTableIndex() {
     for (int i = 1; i < constant_pool.size() - 1; i++) {
         if (constant_pool[i].first == 1) {
@@ -509,6 +536,8 @@ int ConstantPool::getLineTableIndex() {
     return -1;
 }
 
+/// Return the UTF-8 constant pool entry with name "Code". It is used by other
+/// methods to know if some constant pool entry is the type of code.
 int ConstantPool::getCodeIndex() {
     for (int i = 1; i < constant_pool.size() - 1; i++) {
         if (constant_pool[i].first == 1) {
@@ -521,8 +550,11 @@ int ConstantPool::getCodeIndex() {
     return -1;
 }
 
+/// Return the constant pool size
 int ConstantPool::cpCount() { return pool_size; }
 
+/// If the index points to a Long or a Double entry on the ConstantPool, returns
+/// a DoubleLong (whitch represents a double or a long variable)
 DoubleLong ConstantPool::getNumberByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];
@@ -556,6 +588,8 @@ DoubleLong ConstantPool::getNumberByIndex(int index) {
     return DoubleLong{};
 }
 
+/// Returns a string with the field name and type if the
+/// index points to a Methodref entry on the ConstantPool
 std::string ConstantPool::getNameAndTypeByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[80];
@@ -576,6 +610,8 @@ std::string ConstantPool::getNameAndTypeByIndex(int index) {
     return "";
 }
 
+/// If the index points to a Integer or a Float entry on the ConstantPool,
+/// returns a IntFloatReference (whitch represents a int or a float variable)
 IntFloatReference ConstantPool::getValueByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[80];
@@ -616,6 +652,8 @@ IntFloatReference ConstantPool::getValueByIndex(int index) {
     return IntFloatReference{};
 }
 
+/// If the index points to a Fieldref entry on the ConstantPool,
+/// returns a string that represents the field name
 std::string ConstantPool::getFieldByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[80];

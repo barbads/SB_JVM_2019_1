@@ -138,8 +138,9 @@ int ClassFile::parseDescriptor(std::string desc) {
 /// Shows .class file information.
 ///
 void ClassFile::show() {
-
-    std::cout << "General Information" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "       ClassFile General Information" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     std::cout << "Minor " << minor << std::endl;
     std::cout << "Major " << major << std::endl;
     std::cout << "Constant Pool Count " << cp->cpCount() << std::endl;

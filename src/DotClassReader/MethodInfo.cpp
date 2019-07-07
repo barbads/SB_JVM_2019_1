@@ -450,8 +450,9 @@ AttributeCode MethodInfo::readAttrCode(short unsigned int attr_name_index) {
 std::vector<MethodInfoCte> *MethodInfo::getMethodInfo() { return &mi; }
 
 void MethodInfo::show() {
-    std::cout << "MethodInfo" << std::endl;
-    std::cout << "-------------------" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
+    std::cout << "               MethodInfo" << std::endl;
+    std::cout << "--------------------------------------------" << std::endl;
     for (auto elem : mi) {
         std::cout << "method: " << elem.name << "\nDesc:" << elem.descriptor
                   << std::endl;
