@@ -9,7 +9,9 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/int_aritmetica.class"],
+      "args": [
+        "testes/vetor2.class"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -28,7 +30,9 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceRoot}/sb-2019",
-      "args": ["testes/testes/ArrayUniDemo.class"],
+      "args": [
+        "testes/testes/ArrayUniDemo.class"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
