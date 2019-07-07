@@ -12,6 +12,11 @@
 #include <string>
 #include <vector>
 
+/**
+ * The MethodExecute class is responsible for receiving all of the relevant
+ * .class file information regarding the execution of the bytecode (like
+ * ConstantPool, StackFrame, ClassMethods, ClassFields ...).
+ */
 class MethodExecuter {
   private:
     std::vector<unsigned char> bytecode;

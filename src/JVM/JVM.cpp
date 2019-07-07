@@ -53,6 +53,11 @@ ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
     return cf;
 }
 
+/**
+ * Gets the information needed from the class_loader class variable, extracts
+ * the bytecode and calls the executeByteCode method that will interpret the
+ * code.
+ */
 void JVM::Run() {
     MethodInfoCte main = class_loader->getMainMethod();
     auto field_vector  = *class_loader->getFields();
@@ -78,6 +83,10 @@ void JVM::Run() {
     executeByteCode(code, &field_map, &method_map);
 }
 
+/**
+ * Sets up the context for bytecode execution and calls the method Exec from the
+ * MethodExecuter class.
+ */
 void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
                           ClassMethods *cm) {
     auto context = &stack_per_thread.top().lva;
