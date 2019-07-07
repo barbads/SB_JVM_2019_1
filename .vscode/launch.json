@@ -9,9 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": [
-        "SwitchCase.class"
-      ],
+      "args": ["double_aritmetica.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -30,7 +28,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceRoot}/sb-2019",
-      "args": ["testes/testes/ArrayUniDemo.class"],
+      "args": ["double_aritmetica.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

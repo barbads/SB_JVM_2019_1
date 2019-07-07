@@ -362,7 +362,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             auto value2 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (value2.context_value.i == 0) {
+            if (value2.context_value.d == 0) {
                 throw std::runtime_error("ArithmeticException");
             } else {
                 auto result = value1 / value2;
