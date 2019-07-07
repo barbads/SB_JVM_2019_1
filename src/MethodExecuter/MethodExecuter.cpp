@@ -161,7 +161,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             // return address type??
             if (index > sf->lva.size()) {
-                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+                while (index > sf->lva.size())
+                    sf->lva.push_back(std::make_shared<ContextEntry>());
             }
             if (index == sf->lva.size()) {
                 sf->lva.push_back(objRef);
@@ -258,9 +259,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x10: // bipush
         {
-            auto value = *(++byte);
+            int value = *(++byte);
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
-                new ContextEntry("", I, reinterpret_cast<void *>(&value))));
+                new ContextEntry("", B, reinterpret_cast<void *>(&value))));
         } break;
         case 0xc0: // checkcast
         {
@@ -457,8 +458,16 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index]     = value;
-            sf->lva[index + 1] = value;
+            if (index > sf->lva.size()) {
+                while (index > sf->lva.size()) {
+                    sf->lva.push_back(std::make_shared<ContextEntry>());
+                }
+            }
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index] = value;
+            }
         } break;
         case 0x47: // dstore_0
         case 0x48: // dstore_1
