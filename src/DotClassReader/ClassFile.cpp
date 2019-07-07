@@ -50,7 +50,8 @@ void ClassFile::seek() {
     this_class   = getInfo(file, 2);
     super_class  = getInfo(file, 2);
 
-    if ((cp->getNameByIndex(this_class) + ".class") != (this->fileName)) {
+    if ((cp->getNameByIndex(this_class) + ".class") !=
+        basename(this->fileName.data())) {
         throw std::range_error("Invalid .class file, "
                                "file name is not the same as this class");
     }
