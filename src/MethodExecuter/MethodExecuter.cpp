@@ -447,8 +447,59 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(value);
         } break;
         case 0x6b: // dmul
+        {
+            auto value1 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            if (value1.entry_type == B) {
+                value1.entry_type      = D;
+                value1.context_value.i = (double)value1.context_value.b;
+            }
+            if (value2.entry_type == B) {
+                value2.entry_type      = D;
+                value2.context_value.i = (double)value2.context_value.b;
+            }
+            auto result = value1 * value2;
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
+        } break;
         case 0x6a: // fmul
+        {
+            auto value1 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            if (value1.entry_type == B) {
+                value1.entry_type      = F;
+                value1.context_value.i = (float)value1.context_value.b;
+            }
+            if (value2.entry_type == B) {
+                value2.entry_type      = F;
+                value2.context_value.i = (float)value2.context_value.b;
+            }
+            auto result = value1 * value2;
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
+        } break;
         case 0x68: // imul
+        {
+            auto value1 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value2 = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            if (value1.entry_type == B) {
+                value1.entry_type      = I;
+                value1.context_value.i = (int)value1.context_value.b;
+            }
+            if (value2.entry_type == B) {
+                value2.entry_type      = I;
+                value2.context_value.i = (int)value2.context_value.b;
+            }
+            auto result = value1 * value2;
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry(std::move(result))));
+        } break;
         case 0x69: // lmul
         {
             auto value1 = *sf->operand_stack.top();
@@ -1177,6 +1228,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
+            if (value->entry_type == B) {
+                value->entry_type      = I;
+                value->context_value.i = (int)value->context_value.b;
+            }
+
             int i = -1;
             auto result =
                 *value * ContextEntry("", I, reinterpret_cast<void *>(&i));
@@ -1210,11 +1266,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
             if (result == 0) {
                 throw std::runtime_error("ArithmeticException");
-
-                sf->operand_stack.push(
-                    std::shared_ptr<ContextEntry>(new ContextEntry(
-                        "", I, reinterpret_cast<void *>(&result))));
             }
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
         case 0xac: // ireturn
         case 0xad: // lreturn
@@ -1505,7 +1559,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
                 sf->operand_stack.push(
                     std::shared_ptr<ContextEntry>(new ContextEntry(
-                        "", J, reinterpret_cast<void *>(&result))));
+                        "", I, reinterpret_cast<void *>(&result))));
             }
         } break;
         case 0x79: // lshl
