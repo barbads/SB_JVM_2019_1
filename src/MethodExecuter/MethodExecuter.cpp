@@ -277,60 +277,81 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x90: // d2f
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = F;
-            value->context_value.f = (float)value->context_value.d;
-            sf->operand_stack.push(value);
+            value.entry_type      = F;
+            value.context_value.f = (float)value.context_value.d;
+
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.f)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x86: // i2f
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = F;
-            value->context_value.f = (float)value->context_value.i;
-            sf->operand_stack.push(value);
+            value.entry_type      = F;
+            value.context_value.f = (float)value.context_value.i;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.f)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x89: // l2f
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = F;
-            value->context_value.f = (float)value->context_value.j;
-
-            sf->operand_stack.push(value);
+            value.entry_type      = F;
+            value.context_value.f = (float)value.context_value.j;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.f)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x88: // l2i
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = I;
-            value->context_value.i = (int)value->context_value.j;
-            sf->operand_stack.push(value);
+            value.entry_type      = I;
+            value.context_value.i = (int)value.context_value.j;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.i)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x8e: // d2i
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = I;
-            value->context_value.i = (int)value->context_value.d;
-            sf->operand_stack.push(value);
+            value.entry_type      = I;
+            value.context_value.i = (int)value.context_value.d;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.i)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x85: // i2l
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = J;
-            value->context_value.j = (long)value->context_value.i;
-            sf->operand_stack.push(value);
+            value.entry_type      = J;
+            value.context_value.j = (long)value.context_value.i;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.j)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x8f: // d2l
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type      = J;
-            value->context_value.j = (long)value->context_value.d;
-            sf->operand_stack.push(value);
+            value.entry_type      = J;
+            value.context_value.j = (long)value.context_value.d;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.j)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x63: // dadd
         case 0x62: // fadd
@@ -417,7 +438,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(value);
         } break;
         case 0x26: // dload_0
-        case 0x27: // dload_1
+        case 0x27: // dload_1x
         case 0x28: // dload_2
         case 0x29: // dload_3
         {
@@ -658,32 +679,62 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 }
             }
         } break;
-
-        case 0x8d: // f2d
         case 0x87: // i2d
+        {
+            auto value = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value.entry_type      = D;
+            value.context_value.d = (double)value.context_value.i;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.d)));
+            sf->operand_stack.push(valptr);
+
+        } break;
+        case 0x8d: // f2d
+        {
+            auto value = *sf->operand_stack.top();
+            sf->operand_stack.pop();
+            value.entry_type      = D;
+            value.context_value.d = (double)value.context_value.f;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.d)));
+            sf->operand_stack.push(valptr);
+
+        } break;
         case 0x8a: // l2d
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type = D;
-            sf->operand_stack.push(value);
-
+            value.entry_type      = D;
+            value.context_value.d = (double)value.context_value.j;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.d)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x8b: // f2i
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type = I;
-            sf->operand_stack.push(value);
-
+            value.entry_type      = I;
+            value.context_value.i = (int)value.context_value.f;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.i)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x8c: // f2l
         {
-            auto value = sf->operand_stack.top();
+            auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value->entry_type = L;
-            sf->operand_stack.push(value);
-
+            value.entry_type      = J;
+            value.context_value.j = (long)value.context_value.f;
+            std::shared_ptr<ContextEntry> valptr(new ContextEntry(
+                "", value.entry_type,
+                reinterpret_cast<void *>(&value.context_value.j)));
+            sf->operand_stack.push(valptr);
         } break;
         case 0x96: // fcmpg
         case 0x95: // fcmppl
@@ -804,7 +855,14 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x43;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index] = value;
+            while (index > sf->lva.size()) {
+                sf->lva.push_back(std::make_shared<ContextEntry>());
+            }
+            if (index == sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index] = value;
+            }
         } break;
         case 0xb4: // getfield
         {
