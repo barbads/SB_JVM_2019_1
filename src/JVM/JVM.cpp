@@ -18,7 +18,7 @@ ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
         if (f.descriptor.length() == 1) {
             int zero     = 0;
             auto zeroref = reinterpret_cast<void *>(&zero);
-            cf[f.name]   = std::make_unique<ContextEntry>(
+            cf[f.name]   = std::make_shared<ContextEntry>(
                 "", TypeMap.at(f.descriptor), zeroref);
         } else {
             int dimension = 0;
@@ -69,7 +69,8 @@ void JVM::Run() {
         std::cout << "No code to be executed" << std::endl;
         return;
     }
-    std::shared_ptr<ContextEntry> main_context(new ContextEntry());
+    std::shared_ptr<ContextEntry> main_context(
+        new ContextEntry(&field_map, nullptr));
     std::vector<std::shared_ptr<ContextEntry>> context{main_context};
     stack_per_thread.push(StackFrame(&context));
 
@@ -80,8 +81,6 @@ void JVM::Run() {
 void JVM::executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
                           ClassMethods *cm) {
     auto context = &stack_per_thread.top().lva;
-    std::shared_ptr<ContextEntry> ce(new ContextEntry());
-    context->push_back(ce);
     std::function<int(std::string)> getArgsLength(std::bind(
         &ClassFile::getMethodArgsLength, class_loader, std::placeholders::_1));
     auto me = new MethodExecuter(class_loader->getCP(), cm, cf, getArgsLength);

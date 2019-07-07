@@ -1555,6 +1555,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
         } break;
         case 0xaa: { // tableswitch
+            auto inital_pc      = byte;
             int tableswitchline = i;
             int padding         = i;
             auto index1         = sf->operand_stack.top();
@@ -1588,29 +1589,30 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
 
             if ((index < low) || (index > high)) { // sends to default address
+                byte = inital_pc;
                 byte += default_;
-            }
-            int k = 0;
-            std::map<unsigned int, signed int> jumptable;
-            while (k < high) {
-                int jumpoffset = 0;
-                for (int l = 0; l < 4; l++) { // gets offset
-                    auto value = static_cast<unsigned short int>(*byte);
-                    int sll = 24 - (8 * l); // value = byte1<<24 | byte2<<16 |
-                                            // byte3<<8 | byte4<<0
-                    jumpoffset = (value << sll) | jumpoffset;
-                    byte++;
+            } else {
+                int k = 0;
+                std::map<unsigned int, signed int> jumptable;
+                while (k < high) {
+                    int jumpoffset = 0;
+                    for (int l = 0; l < 4; l++) { // gets offset
+                        auto value = static_cast<unsigned short int>(*byte);
+                        int sll = 24 - (8 * l); // value = byte1<<24 | byte2<<16
+                                                // | byte3<<8 | byte4<<0
+                        jumpoffset = (value << sll) | jumpoffset;
+                        byte++;
+                    }
+                    jumptable.insert(std::make_pair(k + 1, jumpoffset));
+                    k++;
                 }
-                jumptable.insert(std::make_pair(k + 1, jumpoffset));
-                k++;
+                byte--;
+                int op = jumptable.at(1);
+                byte -= op; // voltar pc para endereco de tableswitch
+                int offset = jumptable.at(index);
+                byte += offset;
             }
-            byte--;
-            int op = jumptable.at(1);
-            byte -= op; // voltar pc para endereco de tableswitch
-            int offset = jumptable.at(index);
-            byte += offset;
-            break;
-        }
+        } break;
         case 0xc4: // wide
         {
             wide = true;

@@ -16,7 +16,7 @@ class ContextEntry {
     bool isRetAddr = false;
 
   public:
-    std::map<int, std::shared_ptr<ContextEntry>> *cf;
+    std::map<std::string, std::shared_ptr<ContextEntry>> *cf;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
     Type entry_type;
@@ -112,7 +112,7 @@ class ContextEntry {
         context_value.i = 0;
     }
 
-    ContextEntry(std::map<int, std::shared_ptr<ContextEntry>> *cf,
+    ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> *cf,
                  void *value) {
         // case an objectref has fields
         isNull     = false;
