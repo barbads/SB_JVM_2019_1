@@ -782,8 +782,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            if (index > sf->lva.size()) {
-                throw std::runtime_error("ArrayIndexOutOfBoundsException");
+            while (index > sf->lva.size()) {
+                sf->lva.push_back(std::make_shared<ContextEntry>());
             }
             if (index == sf->lva.size()) {
                 sf->lva.push_back(value);
@@ -958,7 +958,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte--;
                 }
             } else if (index == 4) {
-                if (value1->context_value.b > value2->context_value.b) {
+                if (value1->context_value.b <= value2->context_value.b) {
                     offset = (branchbyte1 << 8) | branchbyte2;
                     byte--;
                 }
@@ -1357,7 +1357,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x9: // lconst_0
         case 0xa: // lconst_1
         {
-            char e = *byte - 0x9;
+            long e = (long)*byte - 0x9;
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&e))));
 

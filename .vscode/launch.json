@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/testes/double_cast.class"],
+      "args": ["testes/testes/Fibonacci.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
