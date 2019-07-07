@@ -97,17 +97,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             int count = sf->operand_stack.top()->context_value.b;
             sf->operand_stack.pop();
-            int index        = -1;
-            const int index1 = *(byte + 1);
-            if (wide) {
-                wide             = false;
-                const int index2 = *(byte + 2);
-                index            = index1 << 8 + index2;
-                byte++;
-            } else {
-                index = index1;
-            }
-            byte++;
+            const int index1 = *(++byte);
+            const int index2 = *(++byte);
+            int index        = index1 << 8 | index2;
             if (count < 0) {
                 throw std::runtime_error("NegativeArraySizeException");
             }
@@ -349,7 +341,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xe: // dconst_<d> dconst_0
         case 0xf: // dconst_<d> dconst_1
         {
-            char e = *byte - 0xe;
+            double e = (double)*byte - 0xe;
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", D, reinterpret_cast<void *>(&e))));
 
@@ -847,18 +839,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry(std::move(result))));
         } break;
-        case 0x2: // iconst_m1
-        case 0x3: // iconst_0
-        case 0x4: // iconst_1
-        case 0x5: // iconst_2
-        case 0x6: // iconst_3
-        case 0x7: // iconst_4
-        case 0x8: // iconst_5
-        {
-            int e = static_cast<int>(*byte - 0x3);
-            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
-                new ContextEntry("", I, reinterpret_cast<void *>(&e))));
-        } break;
+
         case 0x6c: // idiv
         {
             auto value1 = *sf->operand_stack.top();
@@ -872,6 +853,18 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                     new ContextEntry(std::move(value3))));
             }
+        } break;
+        case 0x2: // iconst_m1
+        case 0x3: // iconst_0
+        case 0x4: // iconst_1
+        case 0x5: // iconst_2
+        case 0x6: // iconst_3
+        case 0x7: // iconst_4
+        case 0x8: // iconst_5
+        {
+            int e = static_cast<int>(*byte - 0x3);
+            sf->operand_stack.push(std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&e))));
         } break;
         case 0xa5: // if_acmpeq
         case 0xa6: // if_acmpne
@@ -1170,6 +1163,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto cm_index      = cp->getMethodNameIndex(index);
             auto method_name   = cp->getMethodNameByIndex(index);
             std::shared_ptr<ContextEntry> exec_return;
+            if (cm_index == -1) {
+                // init method from java object no need to call
+                return nullptr;
+            }
             if (cm_index == -2) {
                 auto name_and_type = cp->getNameAndTypeByIndex(index);
                 auto found         = name_and_type.find("println");
@@ -1464,7 +1461,29 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             break;
         case 0xc5: // multianewarray
         {
-
+            auto indexbyte1 = *(++byte);
+            auto indexbyte2 = *(++byte);
+            int index       = (indexbyte1 << 8) | indexbyte2;
+            auto dimensions = *(++byte);
+            auto array_desc = cp->getNameByIndex(index);
+            std::vector<unsigned int> counters;
+            for (auto i = 0; i < dimensions; i++) {
+                counters.push_back(sf->operand_stack.top()->context_value.i);
+                sf->operand_stack.pop();
+            }
+            auto type_index  = array_desc.find_first_not_of('[');
+            std::string type = {array_desc.at(type_index)};
+            std::shared_ptr<ContextEntry> array_operator = nullptr;
+            array_operator =
+                std::make_shared<ContextEntry>(TypeMap.at(type), 1);
+            std::shared_ptr<ContextEntry> init = array_operator;
+            for (auto i = 0; i < dimensions - 1; i++) {
+                auto newarray =
+                    std::make_shared<ContextEntry>(TypeMap.at(type), 1);
+                array_operator->addToArray(0, newarray);
+                array_operator = std::move(array_operator->arrayRef[0]);
+            }
+            sf->operand_stack.push(init);
         } break;
         case 0xbc: // newarray
         {
