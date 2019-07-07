@@ -3,6 +3,10 @@
 
 #include <DotClassReader/FileReader.hpp>
 
+/** Represents an interface that is a direct superinterface of
+ * the class represented by the .class file or interface type,
+ * in the left-to-right order given in the source for the type.
+ */
 class Interface : FileReader {
   private:
     unsigned short int interface_count;

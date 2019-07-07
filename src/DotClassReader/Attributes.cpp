@@ -1,10 +1,13 @@
 #include <DotClassReader/Attributes.hpp>
 
 ///
-/// 
-/// 
+/// Saves a reference of the .class file
+///
 Attributes::Attributes(std::ifstream *file) { this->file = file; }
 
+///
+/// Parses the .class file and fills the structures from the Attributes class.
+///
 void Attributes::seek() {
     attributes_count = getInfo(file, 2);
     for (int i = 0; i < attributes_count; i++) {
@@ -25,7 +28,7 @@ std::vector<AttributeClassFile> *Attributes::getClassAttributes() {
 }
 
 ///
-/// Show Attributes by iterating 
+/// Show Attributes by iterating
 ///
 void Attributes::show() {
     std::cout << "--------------------------------------------" << std::endl;

@@ -5,6 +5,11 @@
 #include <string>
 #include <vector>
 
+/**
+ * Represents the constant pool entry of the type CONSTANT_Double_info (tag = 6)
+ * more information at:
+ * https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.4.5
+ */
 struct Double {
     unsigned short int tag = 6;
     std::string high_bytes;

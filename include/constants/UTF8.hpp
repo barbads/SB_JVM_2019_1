@@ -1,12 +1,15 @@
 #include <exception>
 #include <string>
 
+/**
+ * Represents the constant pool entry of the type CONSTANT_Utf8_info (tag = 1)
+ * more information at:
+ * https://docs.oracle.com/javase/specs/jvms/se8/html/jvms-4.html#jvms-4.4.7
+ */
 struct UTF8 {
     unsigned short int tag = 1;
-    // lenght is array byte size
-    unsigned short int lenght;
-    // bytes contém os bytes da string
-    std::string bytes;
+    unsigned short int lenght; /// array byte size
+    std::string bytes;         /// contains teh bytes of the string
     UTF8(int lenght, std::string data) {
         this->lenght = lenght;
         for (auto l : data) {
