@@ -82,6 +82,9 @@ class ContextEntry {
             class_name      = "Ljava/lang/String";
             string_instance = *reinterpret_cast<std::string *>(value);
             break;
+        case C:
+            context_value.c = *reinterpret_cast<unsigned char *>(value);
+            break;
         default:
             throw std::runtime_error("This type is not recognized");
             break;

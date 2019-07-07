@@ -12,6 +12,11 @@ MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm,
     this->getArgsLen = getArgsLen;
 }
 
+/**
+ * MethodExecuter implements and executes all the instructions of the JVM. It
+ * sets up the StackFrame, and instructions context to be used with ease. It
+ * returns a ContextEntry type when recursive.
+ */
 std::shared_ptr<ContextEntry>
 MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                      std::vector<std::shared_ptr<ContextEntry>> *ce) {
