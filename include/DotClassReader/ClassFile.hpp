@@ -11,11 +11,12 @@
 #include <map>
 #include <string>
 
-///
-/// ClassFile receives .class file and the file name.
-/// This class will have all the necessary informations for showing and
-/// executing the Java bytecode.
-///
+/**
+ * ClassFile receives .class file and the file name.
+ * This class will have all the necessary informations for
+ * showing and executing the Java bytecode.
+ * Each .class file represents a class or a Java program interface.
+ */
 class ClassFile : FileReader {
   private:
     int minor, major;

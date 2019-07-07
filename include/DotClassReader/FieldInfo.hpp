@@ -7,6 +7,11 @@
 #include <iostream>
 #include <vector>
 
+/**
+ * Gives a complete description of the fields declared by
+ * the class or interface represented on this .class file
+ */
+
 class FieldInfo : FileReader {
   private:
     int field_count;

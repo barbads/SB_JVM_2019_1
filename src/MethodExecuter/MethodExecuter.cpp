@@ -1108,7 +1108,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
         } break;
 
-        case 0x74: // imul
+        case 0x74: // ineg
         {
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();

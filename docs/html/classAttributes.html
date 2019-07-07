@@ -86,8 +86,7 @@ Inheritance diagram for Attributes:</div>
 Public Member Functions</h2></td></tr>
 <tr class="memitem:a1721a7d73fbe8c2fcf26c43086821a01"><td class="memItemLeft" align="right" valign="top">&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAttributes.html#a1721a7d73fbe8c2fcf26c43086821a01">Attributes</a> (std::ifstream *file)</td></tr>
 <tr class="separator:a1721a7d73fbe8c2fcf26c43086821a01"><td class="memSeparator" colspan="2">&#160;</td></tr>
-<tr class="memitem:ab21f67f497681f7b6b7d29adac1f35ac"><td class="memItemLeft" align="right" valign="top"><a id="ab21f67f497681f7b6b7d29adac1f35ac"></a>
-void&#160;</td><td class="memItemRight" valign="bottom"><b>seek</b> ()</td></tr>
+<tr class="memitem:ab21f67f497681f7b6b7d29adac1f35ac"><td class="memItemLeft" align="right" valign="top">void&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAttributes.html#ab21f67f497681f7b6b7d29adac1f35ac">seek</a> ()</td></tr>
 <tr class="separator:ab21f67f497681f7b6b7d29adac1f35ac"><td class="memSeparator" colspan="2">&#160;</td></tr>
 <tr class="memitem:aa2b7ef13f599722896c7974ba3b64bab"><td class="memItemLeft" align="right" valign="top">std::vector&lt; <a class="el" href="structAttributeClassFile.html">AttributeClassFile</a> &gt; *&#160;</td><td class="memItemRight" valign="bottom"><a class="el" href="classAttributes.html#aa2b7ef13f599722896c7974ba3b64bab">getClassAttributes</a> ()</td></tr>
 <tr class="separator:aa2b7ef13f599722896c7974ba3b64bab"><td class="memSeparator" colspan="2">&#160;</td></tr>
@@ -128,7 +127,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getInfoHex</b>
 <tr class="separator:a582531d2785779f2ff67a9ca1c6d4f3b inherit pub_methods_classFileReader"><td class="memSeparator" colspan="2">&#160;</td></tr>
 </table>
 <a name="details" id="details"></a><h2 class="groupheader">Detailed Description</h2>
-<div class="textblock"><p><a class="el" href="classAttributes.html">Attributes</a> is the class responsible for read class attributtes section from file and implements <a class="el" href="classFileReader.html">FileReader</a> interface </p>
+<div class="textblock"><p><a class="el" href="classAttributes.html">Attributes</a> implements <a class="el" href="classFileReader.html">FileReader</a> interface and is the class responsible for read class attributtes section from file. They can be used to correct interpretation of the .class file or be useful for optional tools. </p>
 </div><h2 class="groupheader">Constructor &amp; Destructor Documentation</h2>
 <a id="a1721a7d73fbe8c2fcf26c43086821a01"></a>
 <h2 class="memtitle"><span class="permalink"><a href="#a1721a7d73fbe8c2fcf26c43086821a01">&#9670;&nbsp;</a></span>Attributes()</h2>
@@ -145,6 +144,7 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getInfoHex</b>
         </tr>
       </table>
 </div><div class="memdoc">
+<p>Saves a reference of the .class file </p>
 
 </div>
 </div>
@@ -164,6 +164,34 @@ std::string&#160;</td><td class="memItemRight" valign="bottom"><b>getInfoHex</b>
       </table>
 </div><div class="memdoc">
 <p>Gets .class attributes </p>
+
+</div>
+</div>
+<a id="ab21f67f497681f7b6b7d29adac1f35ac"></a>
+<h2 class="memtitle"><span class="permalink"><a href="#ab21f67f497681f7b6b7d29adac1f35ac">&#9670;&nbsp;</a></span>seek()</h2>
+
+<div class="memitem">
+<div class="memproto">
+<table class="mlabels">
+  <tr>
+  <td class="mlabels-left">
+      <table class="memname">
+        <tr>
+          <td class="memname">void Attributes::seek </td>
+          <td>(</td>
+          <td class="paramname"></td><td>)</td>
+          <td></td>
+        </tr>
+      </table>
+  </td>
+  <td class="mlabels-right">
+<span class="mlabels"><span class="mlabel">virtual</span></span>  </td>
+  </tr>
+</table>
+</div><div class="memdoc">
+<p>Parses the .class file and fills the structures from the <a class="el" href="classAttributes.html">Attributes</a> class. </p>
+
+<p>Implements <a class="el" href="classFileReader.html">FileReader</a>.</p>
 
 </div>
 </div>

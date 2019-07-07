@@ -6,8 +6,10 @@
 #include <iostream>
 
 /**
- * Attributes is the class responsible for read class attributtes section from
- * file and implements FileReader interface
+ * Attributes implements FileReader interface and is the class
+ * responsible for read class attributtes section from file.
+ * They can be used to correct interpretation of the .class file
+ * or be useful for optional tools.
  */
 class Attributes : FileReader {
   private:
