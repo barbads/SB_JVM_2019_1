@@ -9,11 +9,34 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/testes/ArrayUniDemo.class"],
+      "args": [
+        "testes/vetor2.class"
+      ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
       "externalConsole": false,
+      "MIMode": "gdb",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
+      "name": "(gdb) Launch",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "${workspaceRoot}/sb-2019",
+      "args": [
+        "testes/testes/ArrayUniDemo.class"
+      ],
+      "stopAtEntry": false,
+      "cwd": "${workspaceFolder}",
+      "environment": [],
+      "externalConsole": true,
       "MIMode": "gdb",
       "setupCommands": [
         {
