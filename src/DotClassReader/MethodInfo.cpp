@@ -163,29 +163,27 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
             switch (byte_code) {
             case 0xaa: {
                 int instruction_line = j;
-                while (static_cast<unsigned int>(attr.code[j + 1]) ==
-                       0) { // removes padding bytes
+                while (j % 4 != 0) { // removes padding bytes
                     j++;
                 }
-                auto byte4 = static_cast<int>(attr.code[j + 1]);
+                auto byte1 = static_cast<int>(attr.code[j]);
                 j++;
-                auto byte3 = static_cast<int>(attr.code[j + 1]);
+                auto byte2 = static_cast<int>(attr.code[j]);
                 j++;
-                auto byte2 = static_cast<int>(attr.code[j + 1]);
+                auto byte3 = static_cast<int>(attr.code[j]);
                 j++;
-                auto byte1 = static_cast<int>(attr.code[j + 1]);
+                auto byte4 = static_cast<int>(attr.code[j]);
                 j++;
                 auto default_ = static_cast<signed int>(
                     (byte1 << 24) | (byte2 << 16) | (byte3 << 8) | byte4);
-                j++;
 
-                auto bytee1 = static_cast<unsigned int>(attr.code[j + 1]);
+                auto bytee1 = static_cast<unsigned int>(attr.code[j]);
                 j++;
-                auto bytee2 = static_cast<unsigned int>(attr.code[j + 1]);
+                auto bytee2 = static_cast<unsigned int>(attr.code[j]);
                 j++;
-                auto bytee3 = static_cast<unsigned int>(attr.code[j + 1]);
+                auto bytee3 = static_cast<unsigned int>(attr.code[j]);
                 j++;
-                auto bytee4 = static_cast<signed int>(attr.code[j + 1]);
+                auto bytee4 = static_cast<signed int>(attr.code[j]);
                 j++;
                 auto indeex = static_cast<signed int>(
                     (bytee1 << 24) | (bytee2 << 16) | (bytee3 << 8) | bytee4);
@@ -194,16 +192,13 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
 
                 int k = 1;
                 while (k <= indeex) {
-                    auto highbyte1 =
-                        static_cast<unsigned int>(attr.code[j + 1]);
+                    auto highbyte1 = static_cast<unsigned int>(attr.code[j]);
                     j++;
-                    auto highbyte2 =
-                        static_cast<unsigned int>(attr.code[j + 1]);
+                    auto highbyte2 = static_cast<unsigned int>(attr.code[j]);
                     j++;
-                    auto highbyte3 =
-                        static_cast<unsigned int>(attr.code[j + 1]);
+                    auto highbyte3 = static_cast<unsigned int>(attr.code[j]);
                     j++;
-                    auto highbyte4 = static_cast<signed int>(attr.code[j + 1]);
+                    auto highbyte4 = static_cast<signed int>(attr.code[j]);
                     j++;
                     auto indeeex = static_cast<signed int>(
                         (highbyte1 << 24) | (highbyte2 << 16) |
