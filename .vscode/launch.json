@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/testes/TesteSwitch.class"],
+      "args": ["testes/testes/ArrayUniDemo.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

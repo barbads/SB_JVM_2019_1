@@ -226,11 +226,8 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 j--;
                 break;
             }
-            case 0x18:
-            case 0x39:
             case 0x17:
             case 0x38:
-            case 0x36:
             case 0x12:
             case 0x16:
             case 0x37:
@@ -242,9 +239,12 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                    << ">" << std::endl;
                 j++;
                 break;
+            case 0x36:
             case 0x10:
             case 0x15:
             case 0x19:
+            case 0x18:
+            case 0x39:
                 ss << " " << static_cast<int>(attr.code[j + 1]) << std::endl;
                 j++;
                 break;
