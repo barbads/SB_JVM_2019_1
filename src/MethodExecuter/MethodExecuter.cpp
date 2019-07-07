@@ -1046,50 +1046,52 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
             int n = *(byte)-0x99;
-            if (n == 0) {
+            if (n == 0) { // ifeq
                 if (!value->context_value.i) {
                     auto branchbyte1 = *(++byte);
                     auto branchbyte2 = *(++byte);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
-                } else if (n == 1) {
-                    if (value->context_value.i) {
-                        auto branchbyte1 = *(++byte);
-                        auto branchbyte2 = *(++byte);
-                        auto offset      = (branchbyte1 << 8) | branchbyte2;
-                        byte             = byte + offset;
-                    }
-                } else if (n == 2) {
-                    if (value->context_value.i < 0) {
-                        auto branchbyte1 = *(++byte);
-                        auto branchbyte2 = *(++byte);
-                        auto offset      = (branchbyte1 << 8) | branchbyte2;
-                        byte             = byte + offset;
-                    }
-                } else if (n == 3) {
-                    if (value->context_value.i >= 0) {
-                        auto branchbyte1 = *(++byte);
-                        auto branchbyte2 = *(++byte);
-                        auto offset      = (branchbyte1 << 8) | branchbyte2;
-                        byte             = byte + offset;
-                    }
-                } else if (n == 4) {
-                    if (value->context_value.i > 0) {
-                        auto branchbyte1 = *(++byte);
-                        auto branchbyte2 = *(++byte);
-                        auto offset      = (branchbyte1 << 8) | branchbyte2;
-                        byte             = byte + offset;
-                    }
-                } else {
-                    if (value->context_value.i <= 0) {
-                        auto branchbyte1 = *(++byte);
-                        auto branchbyte2 = *(++byte);
-                        auto offset      = (branchbyte1 << 8) | branchbyte2;
-                        byte             = byte + offset;
-                    }
+                }
+            } else if (n == 1) { // ifne
+                if (value->context_value.i) {
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte             = byte + offset;
+                }
+            } else if (n == 2) { // iflt
+                if (value->context_value.i < 0) {
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte             = byte + offset;
+                }
+            } else if (n == 3) { // ifge
+                if (value->context_value.i >= 0) {
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte             = byte + offset;
+                }
+            } else if (n == 4) { // ifgt
+                if (value->context_value.i > 0) {
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte             = byte + offset;
+                }
+            } else { // ifle
+                if (value->context_value.i <= 0) {
+                    auto branchbyte1 = *(++byte);
+                    auto branchbyte2 = *(++byte);
+                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte             = byte + offset;
                 }
             }
-        } break;
+        }
+
+        break;
         case 0xc6: // ifnull
         case 0xc7: // ifnonnull
         {
