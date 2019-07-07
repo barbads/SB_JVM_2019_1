@@ -188,21 +188,33 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 auto indeex = static_cast<signed int>(
                     (bytee1 << 24) | (bytee2 << 16) | (bytee3 << 8) | bytee4);
 
-                ss << " 1 to " << indeex << std::endl;
+                auto highbyte1 = static_cast<unsigned int>(attr.code[j]);
+                j++;
+                auto highbyte2 = static_cast<unsigned int>(attr.code[j]);
+                j++;
+                auto highbyte3 = static_cast<unsigned int>(attr.code[j]);
+                j++;
+                auto highbyte4 = static_cast<signed int>(attr.code[j]);
+                j++;
+                auto high = static_cast<signed int>(
+                    (highbyte1 << 24) | (highbyte2 << 16) | (highbyte3 << 8) |
+                    highbyte4);
+
+                ss << " 1 to " << high << std::endl;
 
                 int k = 1;
-                while (k <= indeex) {
-                    auto highbyte1 = static_cast<unsigned int>(attr.code[j]);
+                while (k <= high) {
+                    auto value1 = static_cast<unsigned int>(attr.code[j]);
                     j++;
-                    auto highbyte2 = static_cast<unsigned int>(attr.code[j]);
+                    auto value2 = static_cast<unsigned int>(attr.code[j]);
                     j++;
-                    auto highbyte3 = static_cast<unsigned int>(attr.code[j]);
+                    auto value3 = static_cast<unsigned int>(attr.code[j]);
                     j++;
-                    auto highbyte4 = static_cast<signed int>(attr.code[j]);
+                    auto value4 = static_cast<signed int>(attr.code[j]);
                     j++;
                     auto indeeex = static_cast<signed int>(
-                        (highbyte1 << 24) | (highbyte2 << 16) |
-                        (highbyte3 << 8) | highbyte4);
+                        (value1 << 24) | (value2 << 16) | (value3 << 8) |
+                        value4);
                     ss << "             " << k << ": "
                        << instruction_line + indeeex << " (+" << indeeex << ")"
                        << std::endl;
@@ -211,10 +223,14 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 ss << "             "
                    << "default: " << instruction_line + default_ << " (+"
                    << default_ << ")" << std::endl;
+                j--;
                 break;
             }
+            case 0x18:
+            case 0x39:
             case 0x17:
             case 0x38:
+            case 0x36:
             case 0x12:
             case 0x16:
             case 0x37:
@@ -237,12 +253,6 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 ss << " " << static_cast<unsigned int>(attr.code[j + 1])
                    << std::endl;
                 j++;
-                break;
-            case 0x39:
-            case 0x36:
-            case 0x18:
-                ss << "  " << static_cast<unsigned int>(attr.code[++j])
-                   << std::endl;
                 break;
             case 0xbd:
             case 0xc0:
