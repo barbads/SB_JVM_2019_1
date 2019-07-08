@@ -671,3 +671,53 @@ std::string ConstantPool::getFieldByIndex(int index) {
         constant_pool[fieldRef->name_type_index].second);
     return name_and_type->name;
 }
+
+std::vector<std::string>
+ConstantPool::getExternalClasses(std::string this_class) {
+    std::vector<std::string> external_classes;
+    for (auto elem : this->constant_pool) {
+        if (elem.first == 7) {
+            auto class_ref = std::static_pointer_cast<Class>(elem.second);
+            if (this_class != class_ref->name &&
+                class_ref->name.find("java") == std::string::npos) {
+                external_classes.push_back(class_ref->name);
+            }
+        }
+    }
+    return external_classes;
+}
+
+std::string ConstantPool::getClassNameFromMethodByIndex(int index) {
+    if (index > constant_pool.size() - 1 || index == 0) {
+        char error[50];
+        sprintf(error,
+                "Requested index %d is out of range, allowed range: 1-%ld",
+                index, constant_pool.size() - 1);
+        throw std::invalid_argument(error);
+    }
+    if (constant_pool[index].first != 10) {
+        char error[150];
+        sprintf(error,
+                "Requested descriptor index %d is not a valid "
+                "Methodref, is a %d instead",
+                index, constant_pool[index].first);
+        throw std::invalid_argument(error);
+    }
+    auto methref =
+        std::static_pointer_cast<Methodref>(constant_pool[index].second);
+    return methref->class_name;
+}
+
+int ConstantPool::getMethodIndexByName(std::string method_name) {
+    auto i = 0;
+    for (auto elem : constant_pool) {
+        if (elem.first == 1) {
+            auto name_ref = std::static_pointer_cast<UTF8>(elem.second);
+            if (name_ref->bytes == method_name) {
+                return i;
+            }
+        }
+        i++;
+    }
+    return -1;
+}

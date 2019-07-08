@@ -9,7 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": ["testes/int_aritmetica.class"],
+      "args": ["testes/Belote.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

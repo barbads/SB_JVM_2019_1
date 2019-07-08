@@ -21,12 +21,14 @@ class JVM {
     ClassFile *class_loader;
     ClassFields convertFieldIntoMap(std::vector<FieldInfoCte>);
     ClassMethods convertMethodIntoMap(std::vector<MethodInfoCte>);
+    std::string class_name;
 
   public:
     JVM(ClassFile *cl);
     void Run();
-    void executeByteCode(std::vector<unsigned char> code, ClassFields *cf,
-                         ClassMethods *cm);
+    void executeByteCode(std::vector<unsigned char> code,
+                         std::map<std::string, ClassFields> *cf,
+                         std::map<std::string, ClassMethods> *cm);
 };
 
 #endif

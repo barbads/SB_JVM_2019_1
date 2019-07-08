@@ -24,6 +24,11 @@ class ClassFile : FileReader {
     std::string magic;
     std::string version;
     ConstantPool *cp;
+    std::map<std::string, ConstantPool *> cp_map;
+    std::map<std::string, MethodInfo *> mi_map;
+    std::map<std::string, FieldInfo *> fi_map;
+    std::map<std::string, Interface *> itf_map;
+    std::map<std::string, Attributes *> attr_map;
     int access_flags;
     int this_class;
     int super_class;
@@ -35,16 +40,18 @@ class ClassFile : FileReader {
     std::map<int, std::string> access_flag;
     std::string fileName;
     int parseDescriptor(std::string desc);
+    void createCPMap(std::vector<std::string> external_classes);
 
   public:
     ClassFile(std::ifstream *file, char const *fileName);
     void seek();
     void show();
-    ConstantPool *getCP();
+    std::map<std::string, ConstantPool *> getCP();
     MethodInfoCte getMainMethod();
-    std::vector<FieldInfoCte> *getFields();
-    std::vector<MethodInfoCte> *getMethods();
-    int getMethodArgsLength(std::string methodName);
+    std::map<std::string, std::vector<FieldInfoCte> *> getFields();
+    std::map<std::string, std::vector<MethodInfoCte> *> getMethods();
+    int getMethodArgsLength(std::string className, std::string methodName);
+    std::string getClassName();
 };
 
 #endif

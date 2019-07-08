@@ -40,6 +40,9 @@ class ConstantPool : FileReader {
     IntFloatReference getValueByIndex(int index);
     std::string getNameAndTypeByIndex(int index);
     std::string getFieldByIndex(int index);
+    std::string getClassNameFromMethodByIndex(int index);
+    std::vector<std::string> getExternalClasses(std::string this_class);
+    int getMethodIndexByName(std::string);
 };
 
 #endif

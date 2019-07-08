@@ -16,7 +16,7 @@ class ContextEntry {
     bool isRetAddr = false;
 
   public:
-    std::map<std::string, std::shared_ptr<ContextEntry>> *cf;
+    std::map<std::string, std::shared_ptr<ContextEntry>> cf;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
     Type entry_type;
@@ -79,7 +79,7 @@ class ContextEntry {
             }
             break;
         case R:
-            class_name      = "Ljava/lang/String";
+            class_name      = "java/lang/String";
             string_instance = *reinterpret_cast<std::string *>(value);
             break;
         case C:
@@ -91,13 +91,14 @@ class ContextEntry {
         }
     }
 
-    ContextEntry(Type entryType, int arraySize) {
-        entry_type = entryType;
-        isArray    = true;
-        hasContext = false;
-        isNull     = false;
-        l          = std::vector<std::shared_ptr<ContextEntry>>();
-        arrayRef   = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
+    ContextEntry(std::string class_name, Type entryType, int arraySize) {
+        this->class_name = class_name;
+        entry_type       = entryType;
+        isArray          = true;
+        hasContext       = false;
+        isNull           = false;
+        l                = std::vector<std::shared_ptr<ContextEntry>>();
+        arrayRef = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
         for (auto &ref : arrayRef) {
             int zero = 0;
             if (entryType != L) {
@@ -108,6 +109,25 @@ class ContextEntry {
             }
         }
     }
+    ContextEntry(std::string class_name, Type entryType, int arraySize,
+                 std::map<std::string, std::shared_ptr<ContextEntry>> cf) {
+        if (entryType != L) {
+            throw std::runtime_error("Could not construct a ContextEntry array "
+                                     "of objects if type is different from L");
+        }
+        this->class_name = class_name;
+        entry_type       = entryType;
+        isArray          = true;
+        hasContext       = false;
+        isNull           = false;
+        l                = std::vector<std::shared_ptr<ContextEntry>>();
+        arrayRef = std::vector<std::shared_ptr<ContextEntry>>(arraySize);
+        for (auto &ref : arrayRef) {
+            int zero = 0;
+            ref      = std::make_shared<ContextEntry>();
+            ref->cf  = cf;
+        }
+    }
 
     ContextEntry() {
         isNull          = true;
@@ -115,25 +135,15 @@ class ContextEntry {
         context_value.i = 0;
     }
 
-    ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> *cf,
-                 void *value) {
+    ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> cf,
+                 std::string class_name) {
         // case an objectref has fields
-        isNull     = false;
-        hasContext = true;
-        isArray    = false;
-        entry_type = L;
-        if (cf != nullptr) {
-            this->cf = cf;
-        }
-        l = std::vector<std::shared_ptr<ContextEntry>>();
-        if (value != nullptr) {
-            hasContext = true;
-            auto received_context =
-                (std::vector<std::shared_ptr<ContextEntry>> *)(value);
-            for (auto c : *received_context) {
-                l.push_back(c);
-            }
-        }
+        isNull           = false;
+        this->class_name = class_name;
+        hasContext       = true;
+        isArray          = false;
+        entry_type       = L;
+        this->cf         = cf;
     }
 
     void PrintValue() {
@@ -169,6 +179,8 @@ class ContextEntry {
         case S:
             std::cout << context_value.s;
             break;
+        case R:
+            std::cout << string_instance;
         default:
             break;
         }

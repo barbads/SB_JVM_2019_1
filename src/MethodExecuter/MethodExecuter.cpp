@@ -3,13 +3,17 @@
 #include <algorithm>
 #include <math.h>
 
-MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm,
-                               ClassFields *cf,
-                               std::function<int(std::string)> getArgsLen) {
-    this->cp         = cp;
+MethodExecuter::MethodExecuter(
+    std::map<std::string, ConstantPool *> cp,
+    std::map<std::string, ClassMethods> *cm,
+    std::map<std::string, ClassFields> *cf,
+    std::function<int(std::string, std::string)> getArgsLen,
+    std::string class_name) {
     this->cm         = cm;
     this->cf         = cf;
     this->getArgsLen = getArgsLen;
+    this->class_name = class_name;
+    this->cp         = cp;
 }
 
 /**
@@ -20,7 +24,7 @@ MethodExecuter::MethodExecuter(ConstantPool *cp, ClassMethods *cm,
 std::shared_ptr<ContextEntry>
 MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                      std::vector<std::shared_ptr<ContextEntry>> *ce) {
-    sf = new StackFrame(ce);
+    auto sf = new StackFrame(ce);
     std::vector<int> args;
     int args_counter = 0;
     bool wide        = false;
@@ -55,6 +59,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.pop();
             if (sf->operand_stack.top()->isArray) {
                 sf->operand_stack.top()->addToArray(index, value_ref);
+                sf->operand_stack.pop();
             } else {
                 throw std::runtime_error(
                     "Stack operand is not an array reference");
@@ -110,7 +115,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             // do we need to save this into a heap? Idk
             sf->operand_stack.push(
-                std::shared_ptr<ContextEntry>(new ContextEntry(L, count)));
+                std::shared_ptr<ContextEntry>(new ContextEntry(
+                    cp.at(class_name)->getNameByIndex(index), L, count)));
         } break;
         case 0xb0: // areturn
         {
@@ -198,10 +204,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             int classNameIndex = (static_cast<int>(*(byte + 1)) << 8) +
                                  static_cast<int>(*(byte + 2));
-            std::string className = cp->getNameByIndex(classNameIndex);
-            auto cevoid           = reinterpret_cast<void *>(&sf->lva);
-            auto entry            = std::shared_ptr<ContextEntry>(
-                new ContextEntry(className, L, cevoid));
+            std::string className =
+                cp.at(class_name)->getNameByIndex(classNameIndex);
+            auto entry = std::shared_ptr<ContextEntry>(
+                new ContextEntry(cf->at(className), className));
             sf->operand_stack.push(entry);
             byte += 2;
         } break;
@@ -268,7 +274,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto objref        = sf->operand_stack.top();
             if (!objref->isNull) {
                 sf->operand_stack.pop();
-                if (objref->class_name == cp->getNameByIndex(index)) {
+                if (objref->class_name ==
+                    cp.at(class_name)->getNameByIndex(index)) {
                     sf->operand_stack.push(objref);
                 } else {
                     throw std::runtime_error("ClassCastException");
@@ -922,10 +929,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int index       = (indexbyte1 << 8) + indexbyte2;
             auto objref     = sf->operand_stack.top();
             sf->operand_stack.pop();
-            auto field_name = cp->getFieldByIndex(index);
+            auto field_name = cp.at(class_name)->getFieldByIndex(index);
             if (objref->isNull)
                 throw std::runtime_error("NullPointerException");
-            auto value = cf->at(field_name);
+            auto value = objref->cf.at(field_name);
             sf->operand_stack.push(value);
         } break;
         case 0xb2: // getstatic
@@ -933,9 +940,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto indexbyte1 = *(++byte);
             auto indexbyte2 = *(++byte);
             auto index      = (indexbyte1 << 8) | indexbyte2;
-            auto field_name = cp->getFieldByIndex(index);
-            if (cf->find(field_name) != cf->end()) {
-                sf->operand_stack.push(cf->at(field_name));
+            auto field_name = cp.at(class_name)->getFieldByIndex(index);
+            if (cf->at(class_name).find(field_name) !=
+                cf->at(class_name).end()) {
+                sf->operand_stack.push(cf->at(class_name).at(field_name));
             }
         } break;
         case 0xa7: // goto
@@ -1201,7 +1209,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                     new ContextEntry("", I, reinterpret_cast<void *>(&zero))));
             } else {
-                if (objref->class_name == cp->getNameByIndex(index)) {
+                if (objref->class_name ==
+                    cp.at(class_name)->getNameByIndex(index)) {
                     sf->operand_stack.push(
                         std::shared_ptr<ContextEntry>(new ContextEntry(
                             "", I, reinterpret_cast<void *>(&one))));
@@ -1311,16 +1320,19 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
             unsigned int index = (indexbyte1 << 8) + indexbyte2;
-            auto cm_index      = cp->getMethodNameIndex(index);
-            auto method_name   = cp->getMethodNameByIndex(index);
+            auto class_name_at_cp =
+                cp.at(class_name)->getClassNameFromMethodByIndex(index);
             std::shared_ptr<ContextEntry> exec_return;
+            auto cm_index    = cp.at(class_name)->getMethodNameIndex(index);
+            auto method_name = cp.at(class_name)->getMethodNameByIndex(index);
             if (cm_index == -1) {
                 // init method from java object no need to call
-                return nullptr;
+                break;
             }
             if (cm_index == -2) {
-                auto name_and_type = cp->getNameAndTypeByIndex(index);
-                auto found         = name_and_type.find("println");
+                auto name_and_type =
+                    cp.at(class_name)->getNameAndTypeByIndex(index);
+                auto found = name_and_type.find("println");
                 if (found != std::string::npos) {
                     auto args =
                         std::string(name_and_type.begin() +
@@ -1345,9 +1357,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     }
                 }
             } else if (cm_index > 0) {
-                auto args_length = getArgsLen(method_name);
+                cm_index =
+                    cp.at(class_name_at_cp)->getMethodIndexByName(method_name);
+                auto args_length = getArgsLen(class_name_at_cp, method_name);
+                auto a           = cm->at(class_name_at_cp);
                 std::vector<unsigned char> code(
-                    cm->at(cm_index).attributes[0].code);
+                    a.at(cm_index).attributes[0].code);
                 std::vector<std::shared_ptr<ContextEntry>> lva;
                 for (int i = 0; i < args_length; i++) {
                     lva.push_back(sf->operand_stack.top());
@@ -1360,9 +1375,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     sf->operand_stack.pop(); // object ref
                 }
                 std::reverse(lva.begin(), lva.end());
-                auto old_os       = sf->operand_stack;
-                exec_return       = Exec(code, &lva);
-                sf->operand_stack = old_os;
+                auto old_os         = sf->operand_stack;
+                auto old_class_name = class_name;
+                class_name          = class_name_at_cp;
+                exec_return         = Exec(code, &lva);
+                class_name          = old_class_name;
+                sf->operand_stack   = old_os;
             }
             if (exec_return != nullptr) {
                 if (exec_return->isReturnAddress()) {
@@ -1484,14 +1502,15 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x12: // ldc
         {
             auto index       = *(++byte);
-            auto intfloatref = cp->getValueByIndex(index);
+            auto intfloatref = cp.at(class_name)->getValueByIndex(index);
             std::shared_ptr<ContextEntry> ce;
             if (intfloatref.t == R) {
                 ce = std::shared_ptr<ContextEntry>(new ContextEntry(
-                    "", R, reinterpret_cast<void *>(&intfloatref.str_value)));
+                    "java/lang/String", R,
+                    reinterpret_cast<void *>(&intfloatref.str_value)));
             } else {
                 ce = std::shared_ptr<ContextEntry>(new ContextEntry(
-                    "", intfloatref.t,
+                    class_name, intfloatref.t,
                     reinterpret_cast<void *>(&intfloatref.val)));
             }
             sf->operand_stack.push(ce);
@@ -1501,7 +1520,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto branchbyte1 = *(++byte);
             auto branchbyte2 = *(++byte);
             auto index       = (branchbyte1 << 8) | branchbyte2;
-            auto intfloatref = cp->getValueByIndex(index);
+            auto intfloatref = cp.at(class_name)->getValueByIndex(index);
             std::shared_ptr<ContextEntry> ce;
             if (intfloatref.t == R) {
                 ce = std::shared_ptr<ContextEntry>(new ContextEntry(
@@ -1518,7 +1537,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index1   = *(++byte);
             auto index2   = *(++byte);
             auto index    = (index1 << 8) | index2;
-            DoubleLong dl = cp->getNumberByIndex(index);
+            DoubleLong dl = cp.at(class_name)->getNumberByIndex(index);
             auto cte      = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", dl.t, reinterpret_cast<void *>(&dl.val)));
             sf->operand_stack.push(cte);
@@ -1616,7 +1635,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto indexbyte2 = *(++byte);
             int index       = (indexbyte1 << 8) | indexbyte2;
             auto dimensions = *(++byte);
-            auto array_desc = cp->getNameByIndex(index);
+            auto array_desc = cp.at(class_name)->getNameByIndex(index);
             std::vector<unsigned int> counters;
             for (auto i = 0; i < dimensions; i++) {
                 counters.push_back(sf->operand_stack.top()->context_value.i);
@@ -1626,11 +1645,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             std::string type = {array_desc.at(type_index)};
             std::shared_ptr<ContextEntry> array_operator = nullptr;
             array_operator =
-                std::make_shared<ContextEntry>(TypeMap.at(type), 1);
+                std::make_shared<ContextEntry>("", TypeMap.at(type), 1);
             std::shared_ptr<ContextEntry> init = array_operator;
             for (auto i = 0; i < dimensions - 1; i++) {
                 auto newarray =
-                    std::make_shared<ContextEntry>(TypeMap.at(type), 1);
+                    std::make_shared<ContextEntry>("", TypeMap.at(type), 1);
                 array_operator->addToArray(0, newarray);
                 array_operator = std::move(array_operator->arrayRef[0]);
             }
@@ -1641,8 +1660,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto atype = static_cast<int>(*(++byte));
             auto count = sf->operand_stack.top();
             sf->operand_stack.pop();
-            std::shared_ptr<ContextEntry> ce(
-                new ContextEntry(ATypeMap.at(atype), count->context_value.b));
+            std::shared_ptr<ContextEntry> ce(new ContextEntry(
+                "", ATypeMap.at(atype), count->context_value.b));
             sf->operand_stack.push(ce);
         } break;
         case 0x0: // nop
@@ -1668,21 +1687,22 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto indexbyte1 = *(++byte);
             auto indexbyte2 = *(++byte);
             auto index      = (indexbyte1 << 8) | indexbyte2;
-            auto field_name = cp->getFieldByIndex(index);
+            auto field_name = cp.at(class_name)->getFieldByIndex(index);
             auto value      = sf->operand_stack.top();
             sf->operand_stack.pop();
+            auto objRef = sf->operand_stack.top();
             sf->operand_stack.pop();
-            cf->operator[](field_name) = value;
+            objRef->cf[field_name] = value;
         } break;
         case 0xb3: // putstatic
         {
             auto indexbyte1 = *(++byte);
             auto indexbyte2 = *(++byte);
             auto index      = (indexbyte1 << 8) | indexbyte2;
-            auto field_name = cp->getFieldByIndex(index);
+            auto field_name = cp.at(class_name)->getFieldByIndex(index);
             auto value      = sf->operand_stack.top();
             sf->operand_stack.pop();
-            cf->operator[](field_name) = value;
+            cf->operator[](class_name)[field_name] = value;
         } break;
         case 0xa9: // ret
         {

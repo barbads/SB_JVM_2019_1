@@ -23,18 +23,22 @@ class MethodExecuter {
     bool isInvokeSpecialInstruction(unsigned char byte);
     bool isNewInstruction(unsigned char byte);
     bool isDupInstruction(unsigned char byte);
-    ConstantPool *cp;
+    std::map<std::string, ConstantPool *> cp;
     // Pair (classname, value)
     StackFrame *sf;
-    ClassMethods *cm;
-    ClassFields *cf;
+    std::map<std::string, ClassMethods> *cm;
+    std::map<std::string, ClassFields> *cf;
     std::stack<std::pair<std::string, int>> local_operand_stack;
     unsigned int countArgs(std::string);
-    std::function<int(std::string)> getArgsLen;
+    std::function<int(std::string, std::string)> getArgsLen;
+    std::string class_name;
 
   public:
-    MethodExecuter(ConstantPool *cp, ClassMethods *cm, ClassFields *cf,
-                   std::function<int(std::string)> getArgsLen);
+    MethodExecuter(std::map<std::string, ConstantPool *> cp,
+                   std::map<std::string, ClassMethods> *cm,
+                   std::map<std::string, ClassFields> *cf,
+                   std::function<int(std::string, std::string)> getArgsLen,
+                   std::string class_name);
     std::shared_ptr<ContextEntry>
     Exec(std::vector<unsigned char> bytecode,
          std::vector<std::shared_ptr<ContextEntry>> *ce);

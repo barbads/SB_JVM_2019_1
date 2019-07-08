@@ -1,5 +1,6 @@
 
 #include <DotClassReader/ClassFile.hpp>
+#include <fstream>
 
 ClassFile::ClassFile(std::ifstream *file, char const *fileName) {
     this->file     = file;
@@ -96,6 +97,10 @@ void ClassFile::seek() {
         attribute.name = cp->getNameByIndex(attribute.attribute_name_index);
         attribute.sourcefile = cp->getNameByIndex(attribute.sourcefile_index);
     }
+
+    auto external_classes =
+        cp->getExternalClasses(cp->getNameByIndex(this_class));
+    createCPMap(external_classes);
 }
 
 ///
@@ -109,7 +114,7 @@ int ClassFile::parseDescriptor(std::string desc) {
     if (args_to_parse.size() == 0) {
         return 0;
     }
-    for (auto l = desc.begin(); l < desc.end(); l++) {
+    for (auto l = desc.begin(); *l != ')'; l++) {
         switch (*l) {
         case 'B':
         case 'C':
@@ -125,7 +130,7 @@ int ClassFile::parseDescriptor(std::string desc) {
             auto end_arg_pos =
                 desc.find_first_of(";", std::distance(desc.begin(), l));
             length++;
-            l += end_arg_pos;
+            l += end_arg_pos - 2;
         } break;
         default:
             break;
@@ -175,23 +180,125 @@ MethodInfoCte ClassFile::getMainMethod() {
 ///
 /// Returns ConstantPool object
 ///
-ConstantPool *ClassFile::getCP() { return cp; }
+std::map<std::string, ConstantPool *> ClassFile::getCP() { return cp_map; }
 
 ///
 /// Returns Fields information
 ///
-std::vector<FieldInfoCte> *ClassFile::getFields() { return fi->getFieldInfo(); }
+std::map<std::string, std::vector<FieldInfoCte> *> ClassFile::getFields() {
+    std::map<std::string, std::vector<FieldInfoCte> *> field_map;
+    for (auto field : fi_map)
+        field_map.insert(
+            std::make_pair(field.first, field.second->getFieldInfo()));
+    return field_map;
+}
 
 ///
 /// Returns Methods information
 ///
-std::vector<MethodInfoCte> *ClassFile::getMethods() {
-    return mi->getMethodInfo();
+std::map<std::string, std::vector<MethodInfoCte> *> ClassFile::getMethods() {
+    std::map<std::string, std::vector<MethodInfoCte> *> method_map;
+    for (auto method : mi_map)
+        method_map.insert(
+            std::make_pair(method.first, method.second->getMethodInfo()));
+    return method_map;
 }
 
 ///
 /// Returns argument length of methodName
 ///
-int ClassFile::getMethodArgsLength(std::string methodName) {
-    return mi->getMethodArgsLength(methodName);
+int ClassFile::getMethodArgsLength(std::string className,
+                                   std::string methodName) {
+    return mi_map.at(className)->getMethodArgsLength(methodName);
+}
+
+///
+/// Return class_name indicated by this_class index at constant pool
+///
+std::string ClassFile::getClassName() { return cp->getNameByIndex(this_class); }
+
+void ClassFile::createCPMap(std::vector<std::string> external_classes) {
+    for (auto class_name : external_classes) {
+
+        auto classfilename = class_name + ".class";
+        std::string directory;
+        const size_t last_slash_idx = fileName.find_last_of('/');
+        if (std::string::npos != last_slash_idx) {
+            directory = fileName.substr(0, last_slash_idx);
+        }
+        auto file  = new std::ifstream(directory + "/" + classfilename,
+                                      std::ios::binary);
+        auto magic = getMagicNumber();
+        if (magic != "cafebabe") {
+            throw std::range_error("Invalid .class file, "
+                                   "could not read magic number properly");
+        }
+
+        auto minor   = getInfo(file, 2);
+        auto major   = getInfo(file, 2);
+        auto version = std::to_string(major) + "." + std::to_string(minor);
+
+        auto external_class_cp = new ConstantPool(file);
+        external_class_cp->seek();
+        auto access_flags = getInfo(file, 2);
+        auto this_class   = getInfo(file, 2);
+        auto super_class  = getInfo(file, 2);
+
+        cp_map.insert(std::make_pair(class_name, external_class_cp));
+
+        auto itf_external = new Interface(file);
+        itf_external->seek();
+        auto itf_ref = itf_external->getITF();
+        for (auto interface : itf_ref) {
+            auto name = external_class_cp->getNameByIndex(interface);
+            itf_external->setITF(name);
+        }
+        itf_map.insert(std::make_pair(class_name, itf_external));
+
+        auto fi_external = new FieldInfo(file);
+        fi_external->seek();
+        auto field_info = fi_external->getFieldInfo();
+        for (auto &field : *field_info) {
+            field.name = external_class_cp->getNameByIndex(field.name_index);
+            field.descriptor =
+                external_class_cp->getNameByIndex(field.descriptor_index);
+            for (int i = 0; i < field.attributes_count; i++) {
+                field.attributes[i].name = external_class_cp->getNameByIndex(
+                    field.attributes[i].attribute_name_index);
+            }
+        }
+        fi_map.insert(std::make_pair(class_name, fi_external));
+
+        auto mi_external = new MethodInfo(file, external_class_cp);
+        mi_external->seek();
+        auto method_info = mi_external->getMethodInfo();
+        for (auto &method : *method_info) {
+            method.name = external_class_cp->getNameByIndex(method.name_index);
+            method.descriptor =
+                external_class_cp->getNameByIndex(method.descriptor_index);
+            method.arg_length = parseDescriptor(method.descriptor);
+            for (auto &elem : method.attributes) {
+                elem.name = external_class_cp->getNameByIndex(
+                    elem.attribute_name_index);
+            }
+        }
+        mi_map.insert(std::make_pair(class_name, mi_external));
+
+        auto attr_external = new Attributes(file);
+        attr_external->seek();
+        auto attr_list = attr_external->getClassAttributes();
+        for (auto &attribute : *attr_list) {
+            attribute.name = external_class_cp->getNameByIndex(
+                attribute.attribute_name_index);
+            attribute.sourcefile =
+                external_class_cp->getNameByIndex(attribute.sourcefile_index);
+        }
+        attr_map.insert(std::make_pair(class_name, attr_external));
+    }
+    auto this_name = cp->getNameByIndex(this_class);
+    cp_map.insert(std::make_pair(this_name, cp));
+    mi_map.insert(std::make_pair(this_name, mi));
+    itf_map.insert(std::make_pair(this_name, itf));
+    fi_map.insert(std::make_pair(this_name, fi));
+    attr_map.insert(std::make_pair(this_name, attr));
 }
