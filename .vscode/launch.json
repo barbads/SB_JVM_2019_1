@@ -10,7 +10,7 @@
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
       "args": [
-        "testes/vetor2.class"
+        "testes/testeLogArit.class"
       ],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
