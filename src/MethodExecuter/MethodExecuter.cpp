@@ -1484,7 +1484,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             long e = (long)*byte - 0x9;
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
-                new ContextEntry("", I, reinterpret_cast<void *>(&e))));
+                new ContextEntry("", J, reinterpret_cast<void *>(&e))));
 
         } break;
         case 0x12: // ldc
