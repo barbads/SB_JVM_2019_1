@@ -377,6 +377,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x97: // dcmp<op> dcmpl
         {
             int i       = 1;
+            int n       = *(byte)-0x97;
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
@@ -384,20 +385,30 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                entry->context_value.i = 1;
-                sf->operand_stack.push(entry);
+                if (n == 1) {
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                } else if (n == 0) {
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                }
             } else if (value1->context_value.d < value2->context_value.d) {
-                entry->context_value.i = -1;
-                sf->operand_stack.push(entry);
+                if (n == 1) {
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                } else if (n == 0) {
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                }
             } else if (value1->context_value.d == value2->context_value.d) {
                 entry->context_value.i = 0;
                 sf->operand_stack.push(entry);
             } else if (isnan(value1->context_value.d) ||
                        isnan(value2->context_value.d)) {
-                if (*byte == 0x98) {
+                if (n == 1) {
                     entry->context_value.i = 1;
                     sf->operand_stack.push(entry);
-                } else if (*byte == 0x97) {
+                } else if (n == 0) {
                     entry->context_value.i = -1;
                     sf->operand_stack.push(entry);
                 }
@@ -563,6 +574,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 byte++;
             } else {
                 index = index1;
+                byte++;
             }
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
@@ -795,9 +807,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(valptr);
         } break;
         case 0x96: // fcmpg
-        case 0x95: // fcmppl
+        case 0x95: // fcmpl
         {
             int i       = 1;
+            int n       = *(byte)-0x95;
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
@@ -805,20 +818,30 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                entry->context_value.i = 1;
-                sf->operand_stack.push(entry);
+                if (n == 1) {
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                } else if (n == 0) {
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                }
             } else if (value1->context_value.d < value2->context_value.d) {
-                entry->context_value.i = -1;
-                sf->operand_stack.push(entry);
+                if (n == 1) {
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                } else if (n == 0) {
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                }
             } else if (value1->context_value.d == value2->context_value.d) {
                 entry->context_value.i = 0;
                 sf->operand_stack.push(entry);
             } else if (isnan(value1->context_value.d) ||
                        isnan(value2->context_value.d)) {
-                if (*byte == 0x96) {
+                if (n == 1) {
                     entry->context_value.i = 1;
                     sf->operand_stack.push(entry);
-                } else if (*byte == 0x95) {
+                } else if (n == 0) {
                     entry->context_value.i = -1;
                     sf->operand_stack.push(entry);
                 }
@@ -1113,45 +1136,51 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             int n = *(byte)-0x99;
             if (n == 0) { // ifeq
                 if (!value->context_value.i) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
+                    auto branchbyte1 = *(byte + 1);
+                    auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
+                    byte--;
                 }
             } else if (n == 1) { // ifne
                 if (value->context_value.i) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
+                    auto branchbyte1 = *(byte + 1);
+                    auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
+                    byte--;
                 }
             } else if (n == 2) { // iflt
                 if (value->context_value.i < 0) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
+                    auto branchbyte1 = *(byte + 1);
+                    auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
+                    byte--;
                 }
             } else if (n == 3) { // ifge
                 if (value->context_value.i >= 0) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
+                    auto branchbyte1 = *(byte + 1);
+                    auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
+                    byte--;
                 }
             } else if (n == 4) { // ifgt
                 if (value->context_value.i > 0) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
+                    auto branchbyte1 = *(byte + 1);
+                    auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
+                    byte--;
                 }
             } else { // ifle
                 if (value->context_value.i <= 0) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
+                    auto branchbyte1 = *(byte + 1);
+                    auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
+                    byte--;
                 }
             }
         }
@@ -1279,7 +1308,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
             auto result = value1.context_value.i % value2.context_value.i;
 
-            if (result == 0) {
+            if (value1.context_value.i == 0) {
                 throw std::runtime_error("ArithmeticException");
             }
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
@@ -1579,7 +1608,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
             auto result = value1.context_value.i % value2.context_value.i;
 
-            if (result == 0) {
+            if (value1.context_value.i == 0) {
                 throw std::runtime_error("ArithmeticException");
 
                 sf->operand_stack.push(
@@ -1617,9 +1646,16 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto index = *(byte)-0x3f;
             auto value = sf->operand_stack.top();
             sf->operand_stack.pop();
-            sf->lva[index]     = value;
-            sf->lva[index + 1] = value;
-
+            if (index + 1 > sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index] = value;
+            }
+            if ((index + 2) > sf->lva.size()) {
+                sf->lva.push_back(value);
+            } else {
+                sf->lva[index + 1] = value;
+            }
         } break;
         case 0x7d: // lushr
         {
