@@ -378,9 +378,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             int i       = 1;
             int n       = *(byte)-0x97;
-            auto value1 = sf->operand_stack.top();
-            sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
@@ -801,9 +801,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             int i       = 1;
             int n       = *(byte)-0x95;
-            auto value1 = sf->operand_stack.top();
-            sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
