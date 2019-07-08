@@ -161,7 +161,7 @@ std::string MethodInfo::getCodeStr(AttributeCode attr) {
                 ss << " ";
             ss << instruction_list[byte_code];
             switch (byte_code) {
-            case 0xaa: {
+            case 0xaa: { // tableswitch
                 int instruction_line = j;
                 while (j % 4 != 0) { // removes padding bytes
                     j++;
