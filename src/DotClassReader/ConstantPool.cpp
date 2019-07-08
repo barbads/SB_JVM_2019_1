@@ -683,7 +683,8 @@ ConstantPool::getExternalClasses(std::string this_class) {
                                        // class_ref->name != this class it might
                                        // be an external class
                 class_ref->name.find("java") == std::string::npos) {
-                if (class_ref->name.find("[") != std::string::npos) {
+                auto bracket = class_ref->name.find_first_of('[');
+                if (bracket == std::string::npos || bracket != 0) {
                     int posix = class_ref->name.find(
                         "["); // but it also cant begin with a '['.
                     if (posix != 0) {
