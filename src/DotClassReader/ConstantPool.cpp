@@ -678,15 +678,23 @@ ConstantPool::getExternalClasses(std::string this_class) {
     for (auto elem : this->constant_pool) {
         if (elem.first == 7) {
             auto class_ref = std::static_pointer_cast<Class>(elem.second);
-            if (this_class != class_ref->name &&
+            if (this_class !=
+                    class_ref->name && // if it is not a java/.. function and
+                                       // class_ref->name != this class it might
+                                       // be an external class
                 class_ref->name.find("java") == std::string::npos) {
-                external_classes.push_back(class_ref->name);
+                if (class_ref->name.find("[") != std::string::npos) {
+                    int posix = class_ref->name.find(
+                        "["); // but it also cant begin with a '['.
+                    if (posix != 0) {
+                        external_classes.push_back(class_ref->name);
+                    }
+                }
             }
         }
     }
     return external_classes;
 }
-
 std::string ConstantPool::getClassNameFromMethodByIndex(int index) {
     if (index > constant_pool.size() - 1 || index == 0) {
         char error[50];

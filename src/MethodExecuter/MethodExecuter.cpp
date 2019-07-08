@@ -385,22 +385,12 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                if (n == 1) {
-                    entry->context_value.i = 1;
-                    sf->operand_stack.push(entry);
-                } else if (n == 0) {
-                    entry->context_value.i = -1;
-                    sf->operand_stack.push(entry);
-                }
+                entry->context_value.i = 1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d < value2->context_value.d) {
-                if (n == 1) {
-                    entry->context_value.i = -1;
-                    sf->operand_stack.push(entry);
-                } else if (n == 0) {
-                    entry->context_value.i = 1;
-                    sf->operand_stack.push(entry);
-                }
-            } else if (value1->context_value.d == value2->context_value.d) {
+                entry->context_value.i = -1;
+                sf->operand_stack.push(entry);
+            } else if (value1->context_value.d > value2->context_value.d) {
                 entry->context_value.i = 0;
                 sf->operand_stack.push(entry);
             } else if (isnan(value1->context_value.d) ||
@@ -716,8 +706,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 auto value3 = sf->operand_stack.top();
                 sf->operand_stack.pop();
                 if (category(value3->entry_type) ==
-                    2) { // Form 3: value3, value2, value1 -> value2, value1,
-                         // value3, value2, value1
+                    2) { // Form 3: value3, value2, value1 -> value2,
+                         // value1, value3, value2, value1
                     sf->operand_stack.push(value2);
                     sf->operand_stack.push(value1);
                     sf->operand_stack.push(value3);
@@ -818,21 +808,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                if (n == 1) {
-                    entry->context_value.i = 1;
-                    sf->operand_stack.push(entry);
-                } else if (n == 0) {
-                    entry->context_value.i = -1;
-                    sf->operand_stack.push(entry);
-                }
+                entry->context_value.i = 1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d < value2->context_value.d) {
-                if (n == 1) {
-                    entry->context_value.i = -1;
-                    sf->operand_stack.push(entry);
-                } else if (n == 0) {
-                    entry->context_value.i = 1;
-                    sf->operand_stack.push(entry);
-                }
+                entry->context_value.i = -1;
+                sf->operand_stack.push(entry);
             } else if (value1->context_value.d == value2->context_value.d) {
                 entry->context_value.i = 0;
                 sf->operand_stack.push(entry);
@@ -1745,6 +1725,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto value      = sf->operand_stack.top();
             sf->operand_stack.pop();
             cf->operator[](class_name)[field_name] = value;
+
         } break;
         case 0xa9: // ret
         {
