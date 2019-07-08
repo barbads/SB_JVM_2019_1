@@ -800,9 +800,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf->operand_stack.push(valptr);
         } break;
         case 0x96: // fcmpg
-        case 0x95: // fcmppl
+        case 0x95: // fcmpl
         {
             int i       = 1;
+            int n       = *(byte)-0x95;
             auto value1 = sf->operand_stack.top();
             sf->operand_stack.pop();
             auto value2 = sf->operand_stack.top();
@@ -810,20 +811,30 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto entry = std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.d > value2->context_value.d) {
-                entry->context_value.i = 1;
-                sf->operand_stack.push(entry);
+                if (n == 1) {
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                } else if (n == 0) {
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                }
             } else if (value1->context_value.d < value2->context_value.d) {
-                entry->context_value.i = -1;
-                sf->operand_stack.push(entry);
+                if (n == 1) {
+                    entry->context_value.i = -1;
+                    sf->operand_stack.push(entry);
+                } else if (n == 0) {
+                    entry->context_value.i = 1;
+                    sf->operand_stack.push(entry);
+                }
             } else if (value1->context_value.d == value2->context_value.d) {
                 entry->context_value.i = 0;
                 sf->operand_stack.push(entry);
             } else if (isnan(value1->context_value.d) ||
                        isnan(value2->context_value.d)) {
-                if (*byte == 0x96) {
+                if (n == 1) {
                     entry->context_value.i = 1;
                     sf->operand_stack.push(entry);
-                } else if (*byte == 0x95) {
+                } else if (n == 0) {
                     entry->context_value.i = -1;
                     sf->operand_stack.push(entry);
                 }
