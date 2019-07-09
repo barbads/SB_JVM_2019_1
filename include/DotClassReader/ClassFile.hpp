@@ -32,6 +32,7 @@ class ClassFile : FileReader {
     int access_flags;
     int this_class;
     int super_class;
+    std::map<std::string, std::string> super_map;
     Interface *itf;
     FieldInfo *fi;
     MethodInfo *mi;
@@ -52,6 +53,7 @@ class ClassFile : FileReader {
     std::map<std::string, std::vector<MethodInfoCte> *> getMethods();
     int getMethodArgsLength(std::string className, std::string methodName);
     std::string getClassName();
+    std::map<std::string, std::string> getSuper(std::string class_name);
 };
 
 #endif

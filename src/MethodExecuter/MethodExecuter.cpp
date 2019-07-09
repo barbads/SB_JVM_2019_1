@@ -8,12 +8,13 @@ MethodExecuter::MethodExecuter(
     std::map<std::string, ClassMethods> *cm,
     std::map<std::string, ClassFields> *cf,
     std::function<int(std::string, std::string)> getArgsLen,
-    std::string class_name) {
-    this->cm         = cm;
-    this->cf         = cf;
-    this->getArgsLen = getArgsLen;
-    this->class_name = class_name;
-    this->cp         = cp;
+    std::string class_name, std::map<std::string, std::string> super_class) {
+    this->cm          = cm;
+    this->cf          = cf;
+    this->getArgsLen  = getArgsLen;
+    this->class_name  = class_name;
+    this->cp          = cp;
+    this->super_class = super_class;
 }
 
 /**
@@ -185,6 +186,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (!objRef->isReference() || !objRef->isReturnAddress()) {
                 std::runtime_error("astore called over a non-reference or "
                                    "returnAddress object");
+            }
+            while (index > sf_local->lva.size()) {
+                sf_local->lva.push_back(std::shared_ptr<ContextEntry>());
             }
             if (index == sf_local->lva.size()) {
                 sf_local->lva.push_back(objRef);
@@ -1391,13 +1395,24 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                         }
                     }
                 } else if (cm_index > 0) {
+                    auto old_class_name = class_name;
+                    class_name          = class_name_at_cp;
+
                     cm_index = cp.at(class_name_at_cp)
                                    ->getMethodIndexByName(method_name);
                     auto args_length =
                         getArgsLen(class_name_at_cp, method_name);
                     auto a = cm->at(class_name_at_cp);
-                    std::vector<unsigned char> code(
-                        a.at(cm_index).attributes[0].code);
+                    std::vector<unsigned char> code;
+                    if (a.find(cm_index) != a.end()) {
+                        code = a.at(cm_index).attributes[0].code;
+                    } else {
+                        a        = cm->at(super_class[class_name_at_cp]);
+                        cm_index = cp.at(super_class[class_name_at_cp])
+                                       ->getMethodIndexByName(method_name);
+                        class_name = super_class[class_name_at_cp];
+                        code       = a.at(cm_index).attributes[0].code;
+                    }
                     std::vector<std::shared_ptr<ContextEntry>> lva;
                     for (int i = 0; i < args_length; i++) {
                         lva.push_back(sf_local->operand_stack.top());
@@ -1410,12 +1425,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                         sf_local->operand_stack.pop(); // object ref
                     }
                     std::reverse(lva.begin(), lva.end());
-                    auto old_os         = sf_local->operand_stack;
-                    auto old_class_name = class_name;
-                    class_name          = class_name_at_cp;
-                    if (method_name == "addCarta") {
-                        std::cout << "here";
-                    }
+                    auto old_os             = sf_local->operand_stack;
                     exec_return             = Exec(code, &lva);
                     class_name              = old_class_name;
                     sf_local->operand_stack = old_os;

@@ -25,7 +25,6 @@ class MethodExecuter {
     bool isDupInstruction(unsigned char byte);
     std::map<std::string, ConstantPool *> cp;
     // Pair (classname, value)
-    StackFrame *sf;
     std::map<std::string, ClassMethods> *cm;
     std::map<std::string, ClassFields> *cf;
     std::stack<std::pair<std::string, int>> local_operand_stack;
@@ -33,13 +32,15 @@ class MethodExecuter {
     std::function<int(std::string, std::string)> getArgsLen;
     std::string class_name;
     std::string str;
+    std::map<std::string, std::string> super_class;
 
   public:
     MethodExecuter(std::map<std::string, ConstantPool *> cp,
                    std::map<std::string, ClassMethods> *cm,
                    std::map<std::string, ClassFields> *cf,
                    std::function<int(std::string, std::string)> getArgsLen,
-                   std::string class_name);
+                   std::string class_name,
+                   std::map<std::string, std::string> super_class);
     std::shared_ptr<ContextEntry>
     Exec(std::vector<unsigned char> bytecode,
          std::vector<std::shared_ptr<ContextEntry>> *ce);

@@ -22,6 +22,7 @@ class JVM {
     ClassFields convertFieldIntoMap(std::vector<FieldInfoCte>);
     ClassMethods convertMethodIntoMap(std::vector<MethodInfoCte>);
     std::string class_name;
+    std::map<std::string, std::string> super_class;
 
   public:
     JVM(ClassFile *cl);

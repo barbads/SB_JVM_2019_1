@@ -9,9 +9,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceFolder}/sb-2019",
-      "args": [
-        "testes/short_aritmetica.class"
-      ],
+      "args": ["testes/Main_1.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],
@@ -30,9 +28,7 @@
       "type": "cppdbg",
       "request": "launch",
       "program": "${workspaceRoot}/sb-2019",
-      "args": [
-        "testes/testes/ArrayUniDemo.class"
-      ],
+      "args": ["testes/testes/ArrayUniDemo.class"],
       "stopAtEntry": false,
       "cwd": "${workspaceFolder}",
       "environment": [],

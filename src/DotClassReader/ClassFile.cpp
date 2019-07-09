@@ -243,7 +243,9 @@ void ClassFile::createCPMap(std::vector<std::string> external_classes) {
         auto access_flags = getInfo(file, 2);
         auto this_class   = getInfo(file, 2);
         auto super_class  = getInfo(file, 2);
-
+        super_map.insert(
+            std::make_pair(external_class_cp->getNameByIndex(this_class),
+                           external_class_cp->getNameByIndex(super_class)));
         cp_map.insert(std::make_pair(class_name, external_class_cp));
 
         auto itf_external = new Interface(file);
@@ -301,4 +303,10 @@ void ClassFile::createCPMap(std::vector<std::string> external_classes) {
     itf_map.insert(std::make_pair(this_name, itf));
     fi_map.insert(std::make_pair(this_name, fi));
     attr_map.insert(std::make_pair(this_name, attr));
+    super_map.insert(std::make_pair(cp->getNameByIndex(this_class),
+                                    cp->getNameByIndex(super_class)));
+}
+
+std::map<std::string, std::string> ClassFile::getSuper(std::string class_name) {
+    return super_map;
 }

@@ -5,6 +5,7 @@
 JVM::JVM(ClassFile *cl) {
     class_loader = cl;
     class_name   = class_loader->getClassName();
+    super_class  = class_loader->getSuper(class_name);
 }
 
 ClassMethods JVM::convertMethodIntoMap(std::vector<MethodInfoCte> mi) {
@@ -119,6 +120,6 @@ void JVM::executeByteCode(std::vector<unsigned char> code,
         std::bind(&ClassFile::getMethodArgsLength, class_loader,
                   std::placeholders::_1, std::placeholders::_2));
     auto me = new MethodExecuter(class_loader->getCP(), cm, cf, getArgsLength,
-                                 class_name);
+                                 class_name, super_class);
     me->Exec(code, context);
 }
