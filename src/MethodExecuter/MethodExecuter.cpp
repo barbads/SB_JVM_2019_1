@@ -1601,20 +1601,23 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
             auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            long int operand = static_cast<long int> * value1.context_value.j;
+            long int operand = static_cast<long int>(value1.context_value.j);
 
-            auto result = value1.context_value.j << value2;
+            auto result = value1.context_value.j << sll;
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", J, reinterpret_cast<void *>(&result))));
         } break;
         case 0x7b: // lshr
         {
+            auto value2 = sf->operand_stack.top();
+            sf->operand_stack.pop();
+            int srl = value2->context_value.j;
+
             auto value1 = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            int value2 = sf->operand_stack.top()->context_value.j & 0x1f;
-            sf->operand_stack.pop();
-            ContextEntry("", J, static_cast<void *>(&value1));
-            auto result = value1.context_value.j >> value2;
+            long int operand = static_cast<long int>(value1.context_value.j);
+
+            auto result = value1.context_value.j >> srl;
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", J, reinterpret_cast<void *>(&result))));
         } break;
