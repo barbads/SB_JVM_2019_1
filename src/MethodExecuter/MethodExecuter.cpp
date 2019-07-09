@@ -1320,10 +1320,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value1 = *sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
-            int value2 = sf_local->operand_stack.top()->context_value.i & 0x1f;
+            int shift        = value1.context_value.i;
+            short int value2 = sf_local->operand_stack.top()->context_value.s;
             sf_local->operand_stack.pop();
 
-            auto result = value1.context_value.i << value2;
+            auto result = value2 << shift;
             sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
@@ -1331,10 +1332,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value1 = *sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
-            int value2 = sf_local->operand_stack.top()->context_value.i & 0x1f;
+            int shift  = value1.context_value.i;
+            int value2 = sf_local->operand_stack.top()->context_value.s;
             sf_local->operand_stack.pop();
-            ContextEntry("", I, static_cast<void *>(&value1));
-            auto result = value1.context_value.i >> value2;
+
+            auto result = value2 >> shift;
             sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", I, reinterpret_cast<void *>(&result))));
         } break;
