@@ -8,6 +8,12 @@
 #include <string>
 #include <vector>
 
+/**
+ * ContextEntry defines any operand/variable in code execution, it has control
+ * flags to especaial cases such as objects and arrays, its data is saved in a
+ * union unless it is a object value/ref in those cases, class_fields (cf) or
+ * array ref are set
+ */
 class ContextEntry {
   private:
     bool hasContext;
@@ -25,6 +31,9 @@ class ContextEntry {
 
     ~ContextEntry() {}
 
+    ///
+    /// Controll flag to identify if it is an array
+    ///
     bool isArray;
     union ContextEntryUnion {
         unsigned char b;
@@ -38,6 +47,11 @@ class ContextEntry {
         bool z;
     } context_value;
 
+    ///
+    /// Constructor to base case: takes a string name a entryType and a void *
+    /// value based on entry type it cast void * pointer to proper pointer and
+    /// save the value inside union's correct field
+    ///
     ContextEntry(std::string className, Type entryType, void *value) {
         l                = std::vector<std::shared_ptr<ContextEntry>>();
         this->class_name = className;
@@ -91,6 +105,10 @@ class ContextEntry {
         }
     }
 
+    ///
+    /// Constructor for array of basic types or null references - case you need
+    /// only to create an array of size with null elements
+    ///
     ContextEntry(std::string class_name, Type entryType, int arraySize) {
         this->class_name = class_name;
         entry_type       = entryType;
@@ -110,6 +128,10 @@ class ContextEntry {
         }
     }
 
+    ///
+    /// Creates an array with references to other objects, in this case each
+    /// object will have fields for that class instance
+    ///
     ContextEntry(std::string class_name, Type entryType, int arraySize,
                  std::map<std::string, std::shared_ptr<ContextEntry>> cf) {
         if (entryType != L) {
@@ -130,6 +152,9 @@ class ContextEntry {
         }
     }
 
+    ///
+    /// Create a null entry
+    ///
     ContextEntry() {
         isNull          = true;
         l               = std::vector<std::shared_ptr<ContextEntry>>();
@@ -137,6 +162,9 @@ class ContextEntry {
         entry_type      = L;
     }
 
+    ///
+    /// Create a not-null object reference containing its fields;
+    ///
     ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> cf,
                  std::string class_name) {
         // case an objectref has fields
@@ -148,6 +176,10 @@ class ContextEntry {
         this->cf         = cf;
     }
 
+    ///
+    /// Print value handles print for it's internal value, calling cout for
+    /// saved value, controled by entry_type
+    ///
     void PrintValue() {
         if (hasContext) {
             for (auto entry : l) {
@@ -195,10 +227,19 @@ class ContextEntry {
         return true;
     }
 
+    ///
+    /// set context entry as a return address
+    ///
     void setAsRetAddress() { isRetAddr = true; }
 
+    ///
+    /// returns if value inside context_entry is a return addres
+    ///
     bool isReturnAddress() { return isRetAddr; }
 
+    ///
+    /// for array instances returns a pointer to saved array internal
+    ///
     std::vector<std::shared_ptr<ContextEntry>> *getArray() {
         if (!isNull) {
             return &arrayRef;
@@ -206,6 +247,9 @@ class ContextEntry {
         throw std::runtime_error("NullPointerException");
     }
 
+    ///
+    /// Push an context_entry into an internal array
+    ///
     void addToArray(int index, std::shared_ptr<ContextEntry> ce) {
         if (!isArray) {
             throw std::runtime_error("Could not push to a not-array structure");
