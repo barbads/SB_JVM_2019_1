@@ -210,15 +210,15 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (className.find("java/", 0) == std::string::npos) {
                 auto entry = std::shared_ptr<ContextEntry>(
                     new ContextEntry(cf->at(className), className));
-                sf->operand_stack.push(entry);
+                sf_local->operand_stack.push(entry);
             }
             byte += 2;
         } break;
         case 0x59: // dup
         {
-            if (!sf->operand_stack.empty()) {
-                auto top = sf->operand_stack.top();
-                sf->operand_stack.push(top);
+            if (!sf_local->operand_stack.empty()) {
+                auto top = sf_local->operand_stack.top();
+                sf_local->operand_stack.push(top);
             }
         } break;
         case 0x33: // baload
@@ -1005,9 +1005,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
 
         case 0x6c: // idiv
         {
-            auto value1 = *sf_local->operand_stack.top();
-            sf_local->operand_stack.pop();
             auto value2 = *sf_local->operand_stack.top();
+            sf_local->operand_stack.pop();
+            auto value1 = *sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
             if (value2.context_value.i == 0) {
                 throw std::runtime_error("ArithmeticException");
@@ -1292,9 +1292,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x70: // irem
         {
-            auto value1 = *sf_local->operand_stack.top();
-            sf_local->operand_stack.pop();
             auto value2 = *sf_local->operand_stack.top();
+            sf_local->operand_stack.pop();
+            auto value1 = *sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
 
             auto result = value1.context_value.i % value2.context_value.i;
@@ -1376,8 +1376,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                             args_size);
                         if (args_size > 0) {
                             for (auto &print : prints) {
-                                print = sf->operand_stack.top();
-                                sf->operand_stack.pop();
+                                print = sf_local->operand_stack.top();
+                                sf_local->operand_stack.pop();
                             }
                             for (auto it = prints.end() - 1;
                                  it >= prints.begin(); it--) {
@@ -1398,31 +1398,31 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                         a.at(cm_index).attributes[0].code);
                     std::vector<std::shared_ptr<ContextEntry>> lva;
                     for (int i = 0; i < args_length; i++) {
-                        lva.push_back(sf->operand_stack.top());
-                        sf->operand_stack.pop();
+                        lva.push_back(sf_local->operand_stack.top());
+                        sf_local->operand_stack.pop();
                     }
                     if (invokeType != 0xb8) {
                         // case static we dont need to get reference from stack
-                        auto objectRef = sf->operand_stack.top();
+                        auto objectRef = sf_local->operand_stack.top();
                         lva.push_back(objectRef);
-                        sf->operand_stack.pop(); // object ref
+                        sf_local->operand_stack.pop(); // object ref
                     }
                     std::reverse(lva.begin(), lva.end());
-                    auto old_os         = sf->operand_stack;
+                    auto old_os         = sf_local->operand_stack;
                     auto old_class_name = class_name;
                     class_name          = class_name_at_cp;
                     if (method_name == "addCarta") {
                         std::cout << "here";
                     }
-                    exec_return       = Exec(code, &lva);
-                    class_name        = old_class_name;
-                    sf->operand_stack = old_os;
+                    exec_return             = Exec(code, &lva);
+                    class_name              = old_class_name;
+                    sf_local->operand_stack = old_os;
                 }
                 if (exec_return != nullptr) {
                     if (exec_return->isReturnAddress()) {
                         byte = bytecode.begin() + exec_return->context_value.i;
                     } else {
-                        sf->operand_stack.push(exec_return);
+                        sf_local->operand_stack.push(exec_return);
                     }
                 }
             } else {
@@ -1430,15 +1430,15 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     str = "";
                 else if (method_name == "append") {
                     auto str_to_append =
-                        sf->operand_stack.top()->string_instance;
-                    sf->operand_stack.pop();
+                        sf_local->operand_stack.top()->string_instance;
+                    sf_local->operand_stack.pop();
                     str += str_to_append;
-                    sf->operand_stack.push(std::make_shared<ContextEntry>(
+                    sf_local->operand_stack.push(std::make_shared<ContextEntry>(
                         "", R, reinterpret_cast<void *>(&str)));
                 } else if (method_name == "println") {
-                    std::cout << sf->operand_stack.top()->string_instance
+                    std::cout << sf_local->operand_stack.top()->string_instance
                               << std::endl;
-                    sf->operand_stack.pop();
+                    sf_local->operand_stack.pop();
                 }
             }
         } break;
