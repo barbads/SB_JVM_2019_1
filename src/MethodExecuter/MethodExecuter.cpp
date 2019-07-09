@@ -206,15 +206,19 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                                  static_cast<int>(*(byte + 2));
             std::string className =
                 cp.at(class_name)->getNameByIndex(classNameIndex);
-            auto entry = std::shared_ptr<ContextEntry>(
-                new ContextEntry(cf->at(className), className));
-            sf->operand_stack.push(entry);
+            if (className.find("java/", 0) == std::string::npos) {
+                auto entry = std::shared_ptr<ContextEntry>(
+                    new ContextEntry(cf->at(className), className));
+                sf->operand_stack.push(entry);
+            }
             byte += 2;
         } break;
         case 0x59: // dup
         {
-            auto top = sf->operand_stack.top();
-            sf->operand_stack.push(top);
+            if (!sf->operand_stack.empty()) {
+                auto top = sf->operand_stack.top();
+                sf->operand_stack.push(top);
+            }
         } break;
         case 0x33: // baload
         case 0x34: // caload
@@ -309,8 +313,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value.entry_type      = F;
+            value.entry_type = F;
+
             value.context_value.f = (float)value.context_value.j;
+
             std::shared_ptr<ContextEntry> valptr(new ContextEntry(
                 "", value.entry_type,
                 reinterpret_cast<void *>(&value.context_value.f)));
@@ -1334,71 +1340,93 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             std::shared_ptr<ContextEntry> exec_return;
             auto cm_index    = cp.at(class_name)->getMethodNameIndex(index);
             auto method_name = cp.at(class_name)->getMethodNameByIndex(index);
-            if (cm_index == -1) {
-                // init method from java object no need to call
-                break;
-            }
-            if (cm_index == -2) {
-                auto name_and_type =
-                    cp.at(class_name)->getNameAndTypeByIndex(index);
-                auto found = name_and_type.find("println");
-                if (found != std::string::npos) {
-                    auto args =
-                        std::string(name_and_type.begin() +
-                                        name_and_type.find_first_of('(') + 1,
-                                    name_and_type.begin() +
-                                        name_and_type.find_first_of(')'));
-                    auto args_size = countArgs(args);
-                    std::vector<std::shared_ptr<ContextEntry>> prints(
-                        args_size);
-                    if (args_size > 0) {
-                        for (auto &print : prints) {
-                            print = sf->operand_stack.top();
-                            sf->operand_stack.pop();
-                        }
-                        for (auto it = prints.end() - 1; it >= prints.begin();
-                             it--) {
-                            it->get()->PrintValue();
+
+            if (class_name_at_cp.find("java/lang/StringBuilder", 0) ==
+                std::string::npos) {
+                if (cm_index == -1) {
+                    // init method from java object no need to call
+                    break;
+                }
+                auto cmval = *cm;
+                cmval.find(class_name);
+                if (cm_index == -2) {
+                    auto name_and_type =
+                        cp.at(class_name)->getNameAndTypeByIndex(index);
+                    auto found = name_and_type.find("println");
+                    if (found != std::string::npos) {
+                        auto args = std::string(
+                            name_and_type.begin() +
+                                name_and_type.find_first_of('(') + 1,
+                            name_and_type.begin() +
+                                name_and_type.find_first_of(')'));
+                        auto args_size = countArgs(args);
+                        std::vector<std::shared_ptr<ContextEntry>> prints(
+                            args_size);
+                        if (args_size > 0) {
+                            for (auto &print : prints) {
+                                print = sf->operand_stack.top();
+                                sf->operand_stack.pop();
+                            }
+                            for (auto it = prints.end() - 1;
+                                 it >= prints.begin(); it--) {
+                                it->get()->PrintValue();
+                                std::cout << std::endl;
+                            }
+                        } else {
                             std::cout << std::endl;
                         }
+                    }
+                } else if (cm_index > 0) {
+                    cm_index = cp.at(class_name_at_cp)
+                                   ->getMethodIndexByName(method_name);
+                    auto args_length =
+                        getArgsLen(class_name_at_cp, method_name);
+                    auto a = cm->at(class_name_at_cp);
+                    std::vector<unsigned char> code(
+                        a.at(cm_index).attributes[0].code);
+                    std::vector<std::shared_ptr<ContextEntry>> lva;
+                    for (int i = 0; i < args_length; i++) {
+                        lva.push_back(sf->operand_stack.top());
+                        sf->operand_stack.pop();
+                    }
+                    if (invokeType != 0xb8) {
+                        // case static we dont need to get reference from stack
+                        auto objectRef = sf->operand_stack.top();
+                        lva.push_back(objectRef);
+                        sf->operand_stack.pop(); // object ref
+                    }
+                    std::reverse(lva.begin(), lva.end());
+                    auto old_os         = sf->operand_stack;
+                    auto old_class_name = class_name;
+                    class_name          = class_name_at_cp;
+                    if (method_name == "addCarta") {
+                        std::cout << "here";
+                    }
+                    exec_return       = Exec(code, &lva);
+                    class_name        = old_class_name;
+                    sf->operand_stack = old_os;
+                }
+                if (exec_return != nullptr) {
+                    if (exec_return->isReturnAddress()) {
+                        byte = bytecode.begin() + exec_return->context_value.i;
                     } else {
-                        std::cout << std::endl;
+                        sf->operand_stack.push(exec_return);
                     }
                 }
-            } else if (cm_index > 0) {
-                cm_index =
-                    cp.at(class_name_at_cp)->getMethodIndexByName(method_name);
-                auto args_length = getArgsLen(class_name_at_cp, method_name);
-                auto a           = cm->at(class_name_at_cp);
-                std::vector<unsigned char> code(
-                    a.at(cm_index).attributes[0].code);
-                std::vector<std::shared_ptr<ContextEntry>> lva;
-                for (int i = 0; i < args_length; i++) {
-                    lva.push_back(sf->operand_stack.top());
+            } else {
+                if (method_name == "<init>")
+                    str = "";
+                else if (method_name == "append") {
+                    auto str_to_append =
+                        sf->operand_stack.top()->string_instance;
                     sf->operand_stack.pop();
-                }
-                if (invokeType != 0xb8) {
-                    // case static we dont need to get reference from stack
-                    auto objectRef = sf->operand_stack.top();
-                    lva.push_back(objectRef);
-                    sf->operand_stack.pop(); // object ref
-                }
-                std::reverse(lva.begin(), lva.end());
-                auto old_os         = sf->operand_stack;
-                auto old_class_name = class_name;
-                class_name          = class_name_at_cp;
-                if (method_name == "addCarta") {
-                    std::cout << "here";
-                }
-                exec_return       = Exec(code, &lva);
-                class_name        = old_class_name;
-                sf->operand_stack = old_os;
-            }
-            if (exec_return != nullptr) {
-                if (exec_return->isReturnAddress()) {
-                    byte = bytecode.begin() + exec_return->context_value.i;
-                } else {
-                    sf->operand_stack.push(exec_return);
+                    str += str_to_append;
+                    sf->operand_stack.push(std::make_shared<ContextEntry>(
+                        "", R, reinterpret_cast<void *>(&str)));
+                } else if (method_name == "println") {
+                    std::cout << sf->operand_stack.top()->string_instance
+                              << std::endl;
+                    sf->operand_stack.pop();
                 }
             }
         } break;
@@ -1569,9 +1597,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            double j = -1;
-            auto result =
-                value * ContextEntry("", J, reinterpret_cast<void *>(&j));
+            long j      = -1 * value.context_value.j;
+            auto result = ContextEntry("", J, reinterpret_cast<void *>(&j));
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry(std::move(result))));
         } break;

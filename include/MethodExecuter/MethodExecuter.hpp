@@ -32,6 +32,7 @@ class MethodExecuter {
     unsigned int countArgs(std::string);
     std::function<int(std::string, std::string)> getArgsLen;
     std::string class_name;
+    std::string str;
 
   public:
     MethodExecuter(std::map<std::string, ConstantPool *> cp,
