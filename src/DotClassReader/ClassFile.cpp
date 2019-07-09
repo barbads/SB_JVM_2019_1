@@ -222,12 +222,21 @@ void ClassFile::createCPMap(std::vector<std::string> external_classes) {
 
         auto classfilename = class_name + ".class";
         std::string directory;
-        const size_t last_slash_idx = fileName.find_last_of('/');
+        size_t last_slash_idx = fileName.find_last_of('/');
         if (std::string::npos != last_slash_idx) {
             directory = fileName.substr(0, last_slash_idx);
+        } else {
+            last_slash_idx = fileName.find_last_of('\\');
+            if (std::string::npos != last_slash_idx) {
+                directory = fileName.substr(0, last_slash_idx);
+            }
         }
-        auto file  = new std::ifstream(directory + "/" + classfilename,
-                                      std::ios::binary);
+        std::ifstream *file;
+        if (directory != "")
+            file = new std::ifstream(directory + "/" + classfilename,
+                                     std::ios::binary);
+        else
+            file = new std::ifstream(classfilename, std::ios::binary);
         auto magic = getMagicNumber();
         if (magic != "cafebabe") {
             throw std::range_error("Invalid .class file, "
