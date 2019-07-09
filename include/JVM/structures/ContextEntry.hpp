@@ -315,22 +315,22 @@ class ContextEntry {
     ContextEntry operator&(const ContextEntry b) const {
         switch (entry_type) {
         case B: {
-            auto nvalue = context_value.b & b.context_value.b;
+            unsigned nvalue = context_value.b & b.context_value.b;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case I: {
-            auto nvalue = context_value.i & b.context_value.i;
+            int nvalue = context_value.i & b.context_value.i;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case J: {
-            auto nvalue = context_value.j & b.context_value.j;
+            long nvalue = context_value.j & b.context_value.j;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case S: {
-            auto nvalue = context_value.s & b.context_value.s;
+            short nvalue = context_value.s & b.context_value.s;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
@@ -343,22 +343,22 @@ class ContextEntry {
     ContextEntry operator||(const ContextEntry b) const {
         switch (entry_type) {
         case B: {
-            auto nvalue = context_value.b || b.context_value.b;
+            unsigned char nvalue = context_value.b || b.context_value.b;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case I: {
-            auto nvalue = context_value.i || b.context_value.i;
+            int nvalue = context_value.i || b.context_value.i;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case J: {
-            auto nvalue = context_value.j || b.context_value.j;
+            long nvalue = context_value.j || b.context_value.j;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case S: {
-            auto nvalue = context_value.s || b.context_value.s;
+            short nvalue = context_value.s || b.context_value.s;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
@@ -371,22 +371,22 @@ class ContextEntry {
     ContextEntry operator^(const ContextEntry b) const {
         switch (entry_type) {
         case B: {
-            auto nvalue = context_value.b ^ b.context_value.b;
+            unsigned char nvalue = context_value.b ^ b.context_value.b;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case I: {
-            auto nvalue = context_value.i ^ b.context_value.i;
+            int nvalue = context_value.i ^ b.context_value.i;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case J: {
-            auto nvalue = context_value.j ^ b.context_value.j;
+            long nvalue = context_value.j ^ b.context_value.j;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
         case S: {
-            auto nvalue = context_value.s ^ b.context_value.s;
+            short nvalue = context_value.s ^ b.context_value.s;
             return ContextEntry("", entry_type,
                                 reinterpret_cast<void *>(&nvalue));
         } break;
