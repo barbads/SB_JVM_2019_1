@@ -204,7 +204,7 @@ class ContextEntry {
             std::cout << context_value.d;
             break;
         case F:
-            std::cout << context_value.f;
+            std::cout << std::setprecision(8) << context_value.f;
             break;
         case J:
             std::cout << (long)context_value.j;
