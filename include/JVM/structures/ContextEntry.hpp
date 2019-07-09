@@ -12,10 +12,10 @@ class ContextEntry {
   private:
     bool hasContext;
     std::string field_name;
-    std::string string_instance;
     bool isRetAddr = false;
 
   public:
+    std::string string_instance;
     std::map<std::string, std::shared_ptr<ContextEntry>> cf;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
@@ -60,7 +60,7 @@ class ContextEntry {
             context_value.f = *reinterpret_cast<float *>(value);
             break;
         case J:
-            context_value.j = *reinterpret_cast<long *>(value);
+            context_value.j = *((long *)(value));
             break;
         case S:
             context_value.s = *reinterpret_cast<short *>(value);
@@ -109,6 +109,7 @@ class ContextEntry {
             }
         }
     }
+
     ContextEntry(std::string class_name, Type entryType, int arraySize,
                  std::map<std::string, std::shared_ptr<ContextEntry>> cf) {
         if (entryType != L) {
@@ -133,6 +134,7 @@ class ContextEntry {
         isNull          = true;
         l               = std::vector<std::shared_ptr<ContextEntry>>();
         context_value.i = 0;
+        entry_type      = L;
     }
 
     ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> cf,
@@ -170,11 +172,10 @@ class ContextEntry {
             std::cout << context_value.d;
             break;
         case F:
-            std::cout << std::fixed << std::setprecision(2)
-                      << (float)context_value.f;
+            std::cout << context_value.f;
             break;
         case J:
-            std::cout << context_value.j;
+            std::cout << (long)context_value.j;
             break;
         case S:
             std::cout << context_value.s;

@@ -37,18 +37,30 @@ ClassFields JVM::convertFieldIntoMap(std::vector<FieldInfoCte> fi) {
                 break;
             }
             std::shared_ptr<ContextEntry> array_operator = nullptr;
-            if (dimension > 1) {
-                array_operator =
-                    std::make_shared<ContextEntry>("", TypeMap.at(type), 1);
-                std::shared_ptr<ContextEntry> init = array_operator;
-                for (auto i = 0; i < dimension - 1; i++) {
-                    auto newarray =
+            if (dimension >= 1) {
+                if (type[0] != 'L') {
+                    array_operator =
                         std::make_shared<ContextEntry>("", TypeMap.at(type), 1);
-                    array_operator->addToArray(0, newarray);
-                    array_operator = std::move(array_operator->arrayRef[0]);
+                    std::shared_ptr<ContextEntry> init = array_operator;
+                    for (auto i = 0; i < dimension - 1; i++) {
+                        auto newarray = std::make_shared<ContextEntry>(
+                            "", TypeMap.at(type), 1);
+                        array_operator->addToArray(0, newarray);
+                        array_operator = std::move(array_operator->arrayRef[0]);
+                    }
+                    cf[f.name] = init;
+                } else {
+                    array_operator = std::make_shared<ContextEntry>(type, L, 1);
+                    std::shared_ptr<ContextEntry> init = array_operator;
+                    for (auto i = 0; i < dimension - 1; i++) {
+                        auto newarray = std::make_shared<ContextEntry>(
+                            "", TypeMap.at(type), 1);
+                        array_operator->addToArray(0, newarray);
+                        array_operator = std::move(array_operator->arrayRef[0]);
+                    }
+                    cf[f.name] = init;
                 }
                 break;
-                cf[f.name] = init;
             } else {
                 cf[f.name] = std::make_shared<ContextEntry>(type, L, nullptr);
             }
@@ -89,7 +101,7 @@ void JVM::Run() {
     std::shared_ptr<ContextEntry> main_context(
         new ContextEntry(field_map.at(class_name), class_name));
     std::vector<std::shared_ptr<ContextEntry>> context{main_context};
-    stack_per_thread.push(StackFrame(&context));
+    stack_per_thread.push(StackFrame(context));
 
     auto code = method_attribute_code.code;
     executeByteCode(code, &field_map, &method_map);
