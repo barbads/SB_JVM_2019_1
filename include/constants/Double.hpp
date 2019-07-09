@@ -21,9 +21,7 @@ struct Double {
         std::stringstream ss;
         for (auto b : hbytes) {
             ss << std::hex << static_cast<int>(b);
-            std::cout << std::hex << static_cast<int>(b);
         }
-        std::cout << std::endl;
         high_bytes = ss.str();
         ss         = std::stringstream();
         for (auto b : lbytes) {

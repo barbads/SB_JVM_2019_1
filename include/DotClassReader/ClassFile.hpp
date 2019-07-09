@@ -45,6 +45,7 @@ class ClassFile : FileReader {
 
   public:
     ClassFile(std::ifstream *file, char const *fileName);
+    ~ClassFile();
     void seek();
     void show();
     std::map<std::string, ConstantPool *> getCP();

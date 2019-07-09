@@ -15,6 +15,12 @@ ClassFile::ClassFile(std::ifstream *file, char const *fileName) {
     };
 }
 
+ClassFile::~ClassFile() {
+    delete itf;
+    delete cp;
+    delete fi;
+    delete attr;
+}
 ///
 /// Gets the first for bytes fo the .class file, also known as Magic Number.
 ///
