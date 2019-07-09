@@ -1122,6 +1122,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
                     byte--;
+                } else {
+                    byte++;
                 }
             } else if (n == 1) { // ifne
                 if (value->context_value.i) {
@@ -1130,6 +1132,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
                     byte--;
+                } else {
+                    byte++;
                 }
             } else if (n == 2) { // iflt
                 if (value->context_value.i < 0) {
@@ -1138,6 +1142,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
                     byte--;
+                } else {
+                    byte++;
                 }
             } else if (n == 3) { // ifge
                 if (value->context_value.i >= 0) {
@@ -1146,6 +1152,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
                     byte--;
+                } else {
+                    byte++;
                 }
             } else if (n == 4) { // ifgt
                 if (value->context_value.i > 0) {
@@ -1154,14 +1162,18 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
                     byte--;
+                } else {
+                    byte++;
                 }
-            } else { // ifle
+            } else if (n == 5) { // ifle
                 if (value->context_value.i <= 0) {
                     auto branchbyte1 = *(byte + 1);
                     auto branchbyte2 = *(byte + 2);
                     auto offset      = (branchbyte1 << 8) | branchbyte2;
                     byte             = byte + offset;
                     byte--;
+                } else {
+                    byte++;
                 }
             }
         }
@@ -1272,9 +1284,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x80: // ior
         case 0x81: // lor
         {
-            auto value1 = *sf_local->operand_stack.top();
-            sf_local->operand_stack.pop();
             auto value2 = *sf_local->operand_stack.top();
+            sf_local->operand_stack.pop();
+            auto value1 = *sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
             auto result = value1 || value2;
             sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
@@ -1515,23 +1527,21 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0x94: // lcmp
         {
             int i       = 1;
-            auto value1 = sf_local->operand_stack.top();
-            sf_local->operand_stack.pop();
             auto value2 = sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
-            auto entry = ContextEntry("", I, reinterpret_cast<void *>(&i));
+            auto value1 = sf_local->operand_stack.top();
+            sf_local->operand_stack.pop();
+            auto entry = std::shared_ptr<ContextEntry>(
+                new ContextEntry("", I, reinterpret_cast<void *>(&i)));
             if (value1->context_value.j > value2->context_value.j) {
-                entry.context_value.i = 1;
-                sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
-                    new ContextEntry("", I, reinterpret_cast<void *>(&i))));
+                entry->context_value.i = 1;
+                sf_local->operand_stack.push(entry);
             } else if (value1->context_value.j < value2->context_value.j) {
-                entry.context_value.i = -1;
-                sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
-                    new ContextEntry("", I, reinterpret_cast<void *>(&i))));
+                entry->context_value.i = -1;
+                sf_local->operand_stack.push(entry);
             } else if (value1->context_value.j == value2->context_value.j) {
-                entry.context_value.i = 0;
-                sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
-                    new ContextEntry("", I, reinterpret_cast<void *>(&i))));
+                entry->context_value.i = 0;
+                sf_local->operand_stack.push(entry);
             }
         } break;
         case 0x9: // lconst_0
