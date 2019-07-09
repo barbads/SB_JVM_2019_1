@@ -136,7 +136,7 @@ int ClassFile::parseDescriptor(std::string desc) {
             break;
         }
     }
-    std::cout << length << std::endl;
+    // std::cout << length << std::endl;
     return length;
 };
 
