@@ -12,10 +12,10 @@ class ContextEntry {
   private:
     bool hasContext;
     std::string field_name;
-    std::string string_instance;
     bool isRetAddr = false;
 
   public:
+    std::string string_instance;
     std::map<std::string, std::shared_ptr<ContextEntry>> cf;
     std::vector<std::shared_ptr<ContextEntry>> arrayRef;
     bool isNull;
@@ -109,6 +109,7 @@ class ContextEntry {
             }
         }
     }
+
     ContextEntry(std::string class_name, Type entryType, int arraySize,
                  std::map<std::string, std::shared_ptr<ContextEntry>> cf) {
         if (entryType != L) {
