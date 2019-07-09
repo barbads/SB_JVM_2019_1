@@ -134,6 +134,7 @@ class ContextEntry {
         isNull          = true;
         l               = std::vector<std::shared_ptr<ContextEntry>>();
         context_value.i = 0;
+        entry_type      = L;
     }
 
     ContextEntry(std::map<std::string, std::shared_ptr<ContextEntry>> cf,

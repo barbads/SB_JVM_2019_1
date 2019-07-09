@@ -101,7 +101,7 @@ void JVM::Run() {
     std::shared_ptr<ContextEntry> main_context(
         new ContextEntry(field_map.at(class_name), class_name));
     std::vector<std::shared_ptr<ContextEntry>> context{main_context};
-    stack_per_thread.push(StackFrame(&context));
+    stack_per_thread.push(StackFrame(context));
 
     auto code = method_attribute_code.code;
     executeByteCode(code, &field_map, &method_map);

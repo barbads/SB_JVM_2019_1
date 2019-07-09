@@ -24,7 +24,7 @@ MethodExecuter::MethodExecuter(
 std::shared_ptr<ContextEntry>
 MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                      std::vector<std::shared_ptr<ContextEntry>> *ce) {
-    auto sf_local = new StackFrame(ce);
+    auto sf_local = new StackFrame(*ce);
     std::vector<int> args;
     auto cf_val      = *(this->cf);
     int args_counter = 0;
@@ -932,7 +932,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto indexbyte1 = *(++byte);
             auto indexbyte2 = *(++byte);
-            int index       = (indexbyte1 << 8) + indexbyte2;
+            int index       = (indexbyte1 << 8) | indexbyte2;
             auto objref     = sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
             auto field_name = cp.at(class_name)->getFieldByIndex(index);
@@ -1166,20 +1166,21 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         case 0xc6: // ifnull
         case 0xc7: // ifnonnull
         {
+            auto pc    = byte - 1;
             auto index = *(byte)-0xc6;
             auto value = *sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
+            auto branchbyte1 = *(++byte);
+            auto branchbyte2 = *(++byte);
+            int offset       = (branchbyte1 << 8) | branchbyte2;
+
             if (index == 0) {
                 if (value.isNull) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
-                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte = pc + offset;
                 }
             } else {
                 if (!value.isNull) {
-                    auto branchbyte1 = *(++byte);
-                    auto branchbyte2 = *(++byte);
-                    auto offset      = (branchbyte1 << 8) | branchbyte2;
+                    byte = pc + offset;
                 }
             }
         } break;
@@ -1299,6 +1300,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             while (!sf_local->operand_stack.empty()) {
                 sf_local->operand_stack.pop();
             }
+
             return retval;
         } break;
         case 0x78: // ishl
@@ -1390,12 +1392,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 auto old_os         = sf_local->operand_stack;
                 auto old_class_name = class_name;
                 class_name          = class_name_at_cp;
-                if (class_name == "Jogador" && method_name == "addCarta") {
-                    std::cout << "LVA\n";
-                    // std::cout << "0: " << lva[1]->context_value.i <<
-                    // std::endl; std::cout << "1: " << lva[2]->string_instance
-                    // << std::endl; std::cout << "2: " <<
-                    // lva[3]->context_value.i << std::endl;
+                if (class_name == "Belote" && method_name == "printStatus") {
+                    std::cout << "print";
                 }
                 exec_return             = Exec(code, &lva);
                 class_name              = old_class_name;
@@ -1745,6 +1743,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             auto loadedValue = sf_local->lva.at(index);
             loadedValue->setAsRetAddress();
+
             return loadedValue;
         } break;
         case 0xb1: // return
@@ -1839,7 +1838,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             break;
         }
     }
-
     return nullptr;
 }
 
