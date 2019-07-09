@@ -1119,7 +1119,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte             = byte + offset;
                     byte--;
                 } else {
-                    byte--;
+                    byte++;
                 }
             } else if (n == 1) { // ifne
                 if (value->context_value.i) {
@@ -1129,7 +1129,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte             = byte + offset;
                     byte--;
                 } else {
-                    byte--;
+                    byte++;
                 }
             } else if (n == 2) { // iflt
                 if (value->context_value.i < 0) {
@@ -1139,7 +1139,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte             = byte + offset;
                     byte--;
                 } else {
-                    byte--;
+                    byte++;
                 }
             } else if (n == 3) { // ifge
                 if (value->context_value.i >= 0) {
@@ -1149,7 +1149,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte             = byte + offset;
                     byte--;
                 } else {
-                    byte--;
+                    byte++;
                 }
             } else if (n == 4) { // ifgt
                 if (value->context_value.i > 0) {
@@ -1159,7 +1159,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte             = byte + offset;
                     byte--;
                 } else {
-                    byte--;
+                    byte++;
                 }
             } else if (n == 5) { // ifle
                 if (value->context_value.i <= 0) {
@@ -1169,7 +1169,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     byte             = byte + offset;
                     byte--;
                 } else {
-                    byte--;
+                    byte++;
                 }
             }
         }
