@@ -853,7 +853,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             auto value = sf_local->lva.at(index);
             sf_local->operand_stack.push(value);
-
         } break;
         case 0x22: // fload_0
         case 0x23: // fload_1
@@ -1241,11 +1240,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto index = *(byte)-0x1a;
 
-            auto value = sf_local->lva.at(index);
+            std::shared_ptr<ContextEntry> value = sf_local->lva.at(index);
             sf_local->operand_stack.push(value);
-
         } break;
-
         case 0x74: // ineg
         {
             auto value = sf_local->operand_stack.top();
@@ -1389,12 +1386,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     sf_local->operand_stack.pop(); // object ref
                 }
                 std::reverse(lva.begin(), lva.end());
-                auto old_os         = sf_local->operand_stack;
-                auto old_class_name = class_name;
-                class_name          = class_name_at_cp;
-                if (class_name == "Belote" && method_name == "printStatus") {
-                    std::cout << "print";
-                }
+                auto old_os             = sf_local->operand_stack;
+                auto old_class_name     = class_name;
+                class_name              = class_name_at_cp;
                 exec_return             = Exec(code, &lva);
                 class_name              = old_class_name;
                 sf_local->operand_stack = old_os;
