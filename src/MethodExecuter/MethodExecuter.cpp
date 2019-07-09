@@ -309,8 +309,10 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            value.entry_type      = F;
+            value.entry_type = F;
+
             value.context_value.f = (float)value.context_value.j;
+
             std::shared_ptr<ContextEntry> valptr(new ContextEntry(
                 "", value.entry_type,
                 reinterpret_cast<void *>(&value.context_value.f)));
@@ -1569,9 +1571,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         {
             auto value = *sf->operand_stack.top();
             sf->operand_stack.pop();
-            double j = -1;
-            auto result =
-                value * ContextEntry("", J, reinterpret_cast<void *>(&j));
+            long j      = -1 * value.context_value.j;
+            auto result = ContextEntry("", J, reinterpret_cast<void *>(&j));
             sf->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry(std::move(result))));
         } break;

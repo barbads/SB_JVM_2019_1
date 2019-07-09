@@ -35,7 +35,7 @@ struct Double {
             full_bytes[7 - i] = hbytes[i];
         }
         for (; i < 8; i++) {
-            full_bytes[7 - i] = hbytes[i];
+            full_bytes[7 - i] = lbytes[i - 4];
         }
 
         memcpy(&li, full_bytes, sizeof(double));
