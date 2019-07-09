@@ -884,9 +884,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
         } break;
         case 0x72: // frem
         {
-            auto value1 = sf_local->operand_stack.top();
-            sf_local->operand_stack.pop();
             auto value2 = sf_local->operand_stack.top();
+            sf_local->operand_stack.pop();
+            auto value1 = sf_local->operand_stack.top();
             sf_local->operand_stack.pop();
 
             auto result =
