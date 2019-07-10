@@ -5,6 +5,7 @@
 #include <JVM/structures/ContextEntry.hpp>
 #include <JVM/structures/FieldMap.hpp>
 #include <JVM/structures/StackFrame.hpp>
+#include <JVM/structures/Types.hpp>
 
 #include <functional>
 #include <memory>

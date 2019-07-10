@@ -1387,6 +1387,8 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                             }
                             for (auto it = prints.end() - 1;
                                  it >= prints.begin(); it--) {
+                                auto type = TypeMap.find(args)->second;
+                                it->get()->entry_type = type;
                                 it->get()->PrintValue();
                                 std::cout << std::endl;
                             }

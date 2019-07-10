@@ -201,7 +201,7 @@ class ContextEntry {
             std::cout << context_value.i;
             break;
         case D:
-            std::cout << context_value.d;
+            std::cout << std::setprecision(8) << context_value.d;
             break;
         case F:
             std::cout << std::setprecision(8) << context_value.f;
@@ -214,6 +214,8 @@ class ContextEntry {
             break;
         case R:
             std::cout << string_instance;
+        case C:
+            std::cout << context_value.c;
         default:
             break;
         }
