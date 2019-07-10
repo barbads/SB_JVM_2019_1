@@ -214,8 +214,10 @@ class ContextEntry {
             break;
         case R:
             std::cout << string_instance;
+            break;
         case C:
             std::cout << context_value.c;
+            break;
         default:
             break;
         }
