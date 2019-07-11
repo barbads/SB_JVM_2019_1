@@ -201,10 +201,20 @@ class ContextEntry {
             std::cout << context_value.i;
             break;
         case D:
-            std::cout << std::setprecision(8) << context_value.d;
+            if (context_value.d == (int)context_value.d) {
+                std::cout << std::fixed << std::setprecision(1)
+                          << context_value.d;
+            } else {
+                std::cout << std::setprecision(8) << context_value.d;
+            }
             break;
         case F:
-            std::cout << std::setprecision(8) << context_value.f;
+            if (context_value.f == (int)context_value.f) {
+                std::cout << std::fixed << std::setprecision(1)
+                          << context_value.f;
+            } else {
+                std::cout << std::setprecision(8) << context_value.f;
+            }
             break;
         case J:
             std::cout << (long)context_value.j;
