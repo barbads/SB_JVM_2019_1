@@ -79,7 +79,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (wide) {
                 wide             = false;
                 const int index2 = *(++byte);
-                index            = index1 << 8 + index2;
+                index            = (index1 << 8) | index2;
             } else {
                 index = index1;
             }
@@ -152,7 +152,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (wide) {
                 wide             = false;
                 const int index2 = *(byte + 2);
-                index            = index1 << 8 + index2;
+                index            = (index1 << 8) | index2;
                 byte++;
             } else {
                 index = index1;
@@ -571,7 +571,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (wide) {
                 wide             = false;
                 const int index2 = *(byte + 2);
-                index            = index1 << 8 + index2;
+                index            = (index1 << 8) | index2;
                 byte++;
             } else {
                 index = index1;
@@ -855,7 +855,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (wide) {
                 wide             = false;
                 const int index2 = *(++byte);
-                index            = index1 << 8 + index2;
+                index            = (index1 << 8) | index2;
             } else {
                 index = index1;
             }
@@ -903,7 +903,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             if (wide) {
                 wide             = false;
                 const int index2 = *(++byte);
-                index            = index1 << 8 + index2;
+                index            = (index1 << 8) | index2;
             } else {
                 index = index1;
             }
@@ -1626,6 +1626,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 new ContextEntry(std::move(result))));
         } break;
         case 0xab: // lookupswitch
+            break;
         case 0x71: // lrem
         {
             auto value2 = *sf_local->operand_stack.top();
