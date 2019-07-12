@@ -12,7 +12,7 @@ static const std::map<std::string, Type> TypeMap = std::map<std::string, Type>{
     {"J", J}, {"S", S}, {"Z", Z}, {"L", L}};
 
 int static category(Type t) {
-    if (t == D || t == L) {
+    if (t == D || t == J) {
         return 2;
     }
     return 1;

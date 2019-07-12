@@ -7,5 +7,5 @@
 #include <string>
 
 typedef std::map<std::string, std::shared_ptr<ContextEntry>> ClassFields;
-typedef std::map<int, MethodInfoCte> ClassMethods;
+typedef std::map<std::string, MethodInfoCte> ClassMethods;
 #endif

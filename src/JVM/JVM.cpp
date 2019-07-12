@@ -11,7 +11,8 @@ JVM::JVM(ClassFile *cl) {
 ClassMethods JVM::convertMethodIntoMap(std::vector<MethodInfoCte> mi) {
     ClassMethods cm;
     for (auto m : mi) {
-        cm.insert(std::pair<int, MethodInfoCte>(m.name_index, m));
+        std::string id = m.name + m.descriptor;
+        cm.insert(std::pair<std::string, MethodInfoCte>(id, m));
     }
 
     return cm;

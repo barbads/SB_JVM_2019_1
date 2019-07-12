@@ -385,9 +385,7 @@ std::string ConstantPool::getMethodNameByIndex(int index) {
     }
     auto methref =
         std::static_pointer_cast<Methodref>(constant_pool[index].second);
-    auto name_ref = std::static_pointer_cast<NameAndType>(
-        constant_pool[methref->name_type_index].second);
-    return name_ref->name;
+    return methref->name_and_type;
 }
 
 /// It receives a index to a constant pool Methodref_info entry

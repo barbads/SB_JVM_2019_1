@@ -532,7 +532,7 @@ int MethodInfo::miCount() { return method_count; }
 
 int MethodInfo::getMethodArgsLength(std::string methodName) {
     for (auto method : mi) {
-        if (method.name == methodName) {
+        if (method.name + method.descriptor == methodName) {
             return method.arg_length;
         }
     }

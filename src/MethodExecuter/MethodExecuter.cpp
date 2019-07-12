@@ -457,7 +457,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf_local->operand_stack.push(value);
         } break;
         case 0x26: // dload_0
-        case 0x27: // dload_1x
+        case 0x27: // dload_1
         case 0x28: // dload_2
         case 0x29: // dload_3
         {
@@ -586,8 +586,11 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             }
             if (index == sf_local->lva.size()) {
                 sf_local->lva.push_back(value);
+                sf_local->lva.push_back(value);
             } else {
-                sf_local->lva[index] = value;
+                auto position = sf_local->lva.begin() + index;
+                sf_local->lva.insert(position, value);
+                sf_local->lva.insert(position + 1, value);
             }
         } break;
         case 0x47: // dstore_0
@@ -1352,7 +1355,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             auto invokeType    = *(byte);
             auto indexbyte1    = *(++byte);
             auto indexbyte2    = *(++byte);
-            unsigned int index = (indexbyte1 << 8) + indexbyte2;
+            unsigned int index = (indexbyte1 << 8) | indexbyte2;
             auto class_name_at_cp =
                 cp.at(class_name)->getClassNameFromMethodByIndex(index);
             std::shared_ptr<ContextEntry> exec_return;
@@ -1388,7 +1391,9 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                             for (auto it = prints.end() - 1;
                                  it >= prints.begin(); it--) {
                                 auto type = TypeMap.find(args)->second;
-                                it->get()->entry_type = type;
+                                if (args != "Ljava/lang/String;") {
+                                    it->get()->entry_type = type;
+                                }
                                 it->get()->PrintValue();
                                 std::cout << std::endl;
                             }
@@ -1400,24 +1405,25 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                     auto old_class_name = class_name;
                     class_name          = class_name_at_cp;
 
-                    cm_index = cp.at(class_name_at_cp)
-                                   ->getMethodIndexByName(method_name);
                     auto args_length =
                         getArgsLen(class_name_at_cp, method_name);
                     auto a = cm->at(class_name_at_cp);
                     std::vector<unsigned char> code;
-                    if (a.find(cm_index) != a.end()) {
-                        code = a.at(cm_index).attributes[0].code;
+                    if (a.find(method_name) != a.end()) {
+                        code = a.at(method_name).attributes[0].code;
                     } else {
-                        a        = cm->at(super_class[class_name_at_cp]);
-                        cm_index = cp.at(super_class[class_name_at_cp])
-                                       ->getMethodIndexByName(method_name);
+                        a          = cm->at(super_class[class_name_at_cp]);
                         class_name = super_class[class_name_at_cp];
-                        code       = a.at(cm_index).attributes[0].code;
+                        code       = a.at(method_name).attributes[0].code;
                     }
                     std::vector<std::shared_ptr<ContextEntry>> lva;
                     for (int i = 0; i < args_length; i++) {
                         lva.push_back(sf_local->operand_stack.top());
+                        if (category(
+                                sf_local->operand_stack.top()->entry_type) ==
+                            2) {
+                            lva.push_back(sf_local->operand_stack.top());
+                        }
                         sf_local->operand_stack.pop();
                     }
                     if (invokeType != 0xb8) {
