@@ -196,10 +196,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
                 sf_local->lva[index] = objRef;
             }
         } break;
-        case 0xbf: // athrow
-        {
-            // implement this;
-        } break;
         case 0xbb: // new
         {
             if (byte + 2 >= bytecode.end()) {
@@ -1278,10 +1274,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry(std::move(result))));
         } break;
-        case 0xba: // invokedynamic
-            break;
-        case 0xb9: // invokeinterface
-            break;
         case 0x80: // ior
         case 0x81: // lor
         {
@@ -1625,8 +1617,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry(std::move(result))));
         } break;
-        case 0xab: // lookupswitch
-            break;
         case 0x71: // lrem
         {
             auto value2 = *sf_local->operand_stack.top();
@@ -1704,9 +1694,6 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             sf_local->operand_stack.push(std::shared_ptr<ContextEntry>(
                 new ContextEntry("", J, reinterpret_cast<void *>(&result))));
         } break;
-        case 0xc2: // monitorenter
-        case 0xc3: // monitorexit
-            break;
         case 0xc5: // multianewarray
         {
             auto indexbyte1 = *(++byte);
@@ -1890,6 +1877,7 @@ MethodExecuter::Exec(std::vector<unsigned char> bytecode,
             wide = true;
         } break;
         default:
+            throw std::runtime_error("Instruction not implemented");
             break;
         }
     }
